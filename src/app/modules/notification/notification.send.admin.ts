@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from 'mongoose';
 import { User } from '../user/user.model';
+import { sendNotification } from './notification.utils';
 
 export interface IAdminSendNotificationPayload {
   sender: Types.ObjectId;

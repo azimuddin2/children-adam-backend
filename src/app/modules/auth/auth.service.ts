@@ -16,6 +16,8 @@ import moment from 'moment';
 import { sendEmail } from '../../utils/sendEmail';
 import { TFreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.interface';
 import { TOwnerRegistration } from '../ownerRegistration/ownerRegistration.interface';
+import { TUser } from '../user/user.interface';
+import { sendNotification } from '../notification/notification.utils';
 
 const loginUser = async (payload: TLoginUser) => {
   // 1️⃣ Find user and populate profiles
@@ -83,6 +85,32 @@ const loginUser = async (payload: TLoginUser) => {
         403,
         `Your salon owner account was rejected: "${owner.notes}"`,
       );
+  }
+
+  let updatedUser: TUser = user;
+
+  if (payload.fcmToken) {
+    updatedUser = (await User.findOneAndUpdate(
+      { email: payload.email },
+      { fcmToken: payload.fcmToken?.trim() }, // trim added
+      { new: true, runValidators: true },
+    )) as TUser;
+
+    console.log('FCM Token saved:', updatedUser?.fcmToken);
+  }
+
+  const tokenToUse = updatedUser?.fcmToken;
+
+  // Send notification only if token exists AND valid
+  if (tokenToUse && updatedUser?.notifications) {
+    sendNotification([tokenToUse], {
+      title: 'Login successfully',
+      message: 'New user login to your account',
+      receiver: updatedUser._id as any,
+      receiverEmail: updatedUser.email,
+      receiverRole: updatedUser.role,
+      sender: updatedUser._id as any,
+    });
   }
 
   // 5️⃣ Generate JWT tokens for approved accounts

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { Types } from 'mongoose';
 import { ObjectId as mongoId } from 'mongodb';
 
@@ -11,7 +9,7 @@ export interface INotification {
   product?: mongoId;
   message: string;
   fcmToken?: string;
-  type?: 'text' | 'accept' | 'reject' | 'cancelled' | 'payment' | 'product';
+  type?: 'text' | 'accept' | 'reject' | 'cancelled' | 'payment' | 'booking';
   title?: string;
   isRead?: boolean;
   link?: string;

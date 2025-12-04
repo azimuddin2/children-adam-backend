@@ -5,13 +5,13 @@ const NotificationSchema = new Schema<INotification>(
   {
     sender: {
       type: Schema.Types.ObjectId,
-      ref: 'users',
+      ref: 'User',
       default: '',
     },
 
     receiver: {
       type: Schema.Types.ObjectId,
-      ref: 'users',
+      ref: 'User',
       required: true,
     },
 
@@ -22,7 +22,7 @@ const NotificationSchema = new Schema<INotification>(
 
     receiverRole: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['customer', 'admin', 'owner', 'freelancer'],
       required: true,
     },
     product: {

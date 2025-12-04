@@ -60,4 +60,4 @@ router.post(
   notificationController.pushNotificationUser,
 );
 
-export const notificationRoute = router;
+export const NotificationRoutes = router;

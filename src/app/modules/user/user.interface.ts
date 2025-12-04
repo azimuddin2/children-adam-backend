@@ -41,6 +41,9 @@ export type TUser = {
   freelancerReg?: Types.ObjectId | TOwnerRegistration;
   ownerReg?: Types.ObjectId | TFreelancerRegistration;
 
+  fcmToken?: string;
+  notifications: boolean;
+
   location?: {
     type: 'Point';
     coordinates: [number, number]; // [longitude, latitude]

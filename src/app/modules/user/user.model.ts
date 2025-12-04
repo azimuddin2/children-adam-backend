@@ -144,6 +144,14 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Schema.Types.ObjectId,
       ref: 'OwnerRegistration',
     },
+    fcmToken: {
+      type: String,
+      default: null,
+    },
+    notifications: {
+      type: Boolean,
+      default: true,
+    },
     location: {
       type: {
         type: String,

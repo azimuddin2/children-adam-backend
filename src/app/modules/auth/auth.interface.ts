@@ -4,6 +4,7 @@ import { TRole } from '../user/user.interface';
 export type TLoginUser = {
   email: string;
   password: string;
+  fcmToken?: string;
 };
 
 export type TJwtPayload = {
