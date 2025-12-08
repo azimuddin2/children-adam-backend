@@ -273,6 +273,47 @@ const getBookingsHistoryByCustomerFromDB = async (
   return bookings;
 };
 
+const getBookingsHistoryByVendorFromDB = async (
+  vendorId: string,
+  status: string,
+) => {
+  // Validate vendor
+  if (!vendorId || !mongoose.Types.ObjectId.isValid(vendorId)) {
+    throw new AppError(400, 'Invalid Vendor ID');
+  }
+
+  // Validate status
+  if (!status) {
+    throw new AppError(400, 'Booking status is required');
+  }
+
+  const query = {
+    vendor: vendorId,
+    isDeleted: false,
+    status: status, // status filter applies here
+  };
+
+  const bookings = await Booking.find(query)
+    .populate('service')
+    .populate({
+      path: 'vendor',
+      select:
+        '_id fullName email phone streetAddress city state image location',
+    })
+    .populate({
+      path: 'customer',
+      select: '_id fullName email phone streetAddress city state image',
+    })
+    .populate({
+      path: 'specialist',
+      select: 'name image',
+    })
+    .sort({ createdAt: -1 })
+    .select('-__v -isDeleted');
+
+  return bookings;
+};
+
 const getBookingByIdFromDB = async (id: string) => {
   const result = await Booking.findById(id)
     .populate('service')
@@ -399,10 +440,14 @@ const getVendorAppHomeBookingsFromDB = async (
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const now = getCurrentMinutes(); // current time in minutes from midnight
+  const now = getCurrentMinutes(); // minutes from midnight
 
-  // Fetch all vendor bookings
-  const bookings = await Booking.find({ vendor: vendorId, isDeleted: false })
+  // Fetch bookings
+  const bookings = await Booking.find({
+    vendor: vendorId,
+    isDeleted: false,
+    request: 'approved', // ❗ important: only freelancer & owner approved bookings
+  })
     .populate('service')
     .populate({
       path: 'vendor',
@@ -421,13 +466,16 @@ const getVendorAppHomeBookingsFromDB = async (
     .select('-__v -isDeleted');
 
   if (!bookings?.length) {
-    throw new AppError(404, 'Booking not found');
+    return {
+      servicingNow: [],
+      next: [],
+      upcoming: [],
+    };
   }
 
-  // Categorize bookings
-  const inProcess: typeof bookings = [];
-  const todayWaiting: typeof bookings = [];
-  const nextInLine: typeof bookings = [];
+  // Final result containers
+  const servicingNow: typeof bookings = [];
+  const next: typeof bookings = [];
   const upcoming: typeof bookings = [];
 
   bookings.forEach((b) => {
@@ -436,47 +484,37 @@ const getVendorAppHomeBookingsFromDB = async (
 
     const isToday = bookingDate.getTime() === today.getTime();
 
-    // 1️⃣ In-process (highest priority)
-    if (b.status === 'in-process') {
-      inProcess.push(b);
-      return;
-    }
-
-    // 2️⃣ Today's waiting (pending + request pending)
-    if (isToday && b.status === 'pending' && b.request === 'pending') {
-      todayWaiting.push(b);
-      return;
-    }
-
-    // 3️⃣ Next in Line (today + pending + approved + slotStart > now)
+    // 1️⃣ Servicing Now
     if (
       isToday &&
-      b.status === 'pending' &&
-      b.request === 'approved' &&
-      b.slotStart! > now
+      b.slotStart !== undefined &&
+      b.slotEnd !== undefined &&
+      b.slotStart <= now &&
+      b.slotEnd >= now
     ) {
-      nextInLine.push(b);
+      servicingNow.push(b);
       return;
     }
 
-    // 4️⃣ Upcoming (future date + approved/pending)
-    if (
-      bookingDate.getTime() > today.getTime() &&
-      ['pending', 'approved'].includes(b.status) &&
-      b.request === 'approved'
-    ) {
+    // 2️⃣ Next (Today's next bookings)
+    if (isToday && b.slotStart !== undefined && b.slotStart > now) {
+      next.push(b);
+      return;
+    }
+
+    // 3️⃣ Upcoming (Future Date Bookings)
+    if (bookingDate.getTime() > today.getTime()) {
       upcoming.push(b);
       return;
     }
   });
 
-  // Sort nextInLine by earliest slotStart (queue order)
-  nextInLine.sort((a: any, b: any) => a.slotStart - b.slotStart);
+  // Sort next by earliest booking time
+  next.sort((a: any, b: any) => a.slotStart - b.slotStart);
 
   return {
-    inProcess,
-    todayWaiting,
-    nextInLine,
+    servicingNow,
+    next,
     upcoming,
   };
 };
@@ -486,6 +524,7 @@ export const BookingServices = {
   getAllBookingsFromDB,
   getBookingsRequestFromDB,
   getBookingsHistoryByCustomerFromDB,
+  getBookingsHistoryByVendorFromDB,
   getBookingByIdFromDB,
   bookingCompletedStatusIntoDB,
   bookingCanceledStatusIntoDB,

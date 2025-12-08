@@ -58,6 +58,23 @@ const getBookingsHistoryByCustomer = catchAsync(async (req, res) => {
   });
 });
 
+const getBookingsHistoryByVendor = catchAsync(async (req, res) => {
+  const vendorId = req.query.vendorId as string;
+  const status = req.query.status as string;
+
+  const result = await BookingServices.getBookingsHistoryByVendorFromDB(
+    vendorId,
+    status,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Bookings fetched successfully',
+    data: result,
+  });
+});
+
 const getBookingById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await BookingServices.getBookingByIdFromDB(id);
@@ -148,6 +165,7 @@ export const BookingControllers = {
   getAllBookings,
   getBookingsRequest,
   getBookingsHistoryByCustomer,
+  getBookingsHistoryByVendor,
   getBookingById,
   bookingCompletedStatus,
   bookingCanceledStatus,

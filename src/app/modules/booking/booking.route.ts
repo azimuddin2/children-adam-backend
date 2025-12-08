@@ -38,18 +38,24 @@ router.get(
   BookingControllers.getBookingsHistoryByCustomer,
 );
 
+router.get(
+  '/history',
+  auth('freelancer', 'owner'),
+  BookingControllers.getBookingsHistoryByVendor,
+);
+
 router.get('/:id', BookingControllers.getBookingById);
 
 router.put(
   '/completed-status/:id',
-  auth('customer'),
+  auth('customer', 'freelancer', 'owner'),
   validateRequest(BookingValidation.updateBookingStatusValidationSchema),
   BookingControllers.bookingCompletedStatus,
 );
 
 router.put(
   '/canceled-status/:id',
-  auth('customer'),
+  auth('customer', 'freelancer', 'owner'),
   validateRequest(BookingValidation.updateBookingStatusValidationSchema),
   BookingControllers.bookingCompletedStatus,
 );

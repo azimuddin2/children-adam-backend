@@ -2,7 +2,6 @@ import { TBookingRequest, TBookingStatus } from './booking.interface';
 
 export const BookingStatus: TBookingStatus[] = [
   'pending',
-  'in-process',
   'completed',
   'canceled',
 ];
