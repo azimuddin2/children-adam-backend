@@ -112,19 +112,19 @@ const initializeSocketIO = (server: HttpServer) => {
           io.to(userSocket).emit('message', getPreMessage || []);
 
           // Notification
-          const allUnReaddMessage = await Message.countDocuments({
-            receiver: user?._id,
-            seen: false,
-          });
-          const variable = 'new-notifications::' + user?._id;
-          io.emit(variable, allUnReaddMessage);
+          // const allUnReaddMessage = await Message.countDocuments({
+          //   receiver: user?._id,
+          //   seen: false,
+          // });
+          // const variable = 'new-notifications::' + user?._id;
+          // io.emit(variable, allUnReaddMessage);
 
-          const allUnReaddMessage2 = await Message.countDocuments({
-            receiver: userId,
-            seen: false,
-          });
-          const variable2 = 'new-notifications::' + userId;
-          io.emit(variable2, allUnReaddMessage2);
+          // const allUnReaddMessage2 = await Message.countDocuments({
+          //   receiver: userId,
+          //   seen: false,
+          // });
+          // const variable2 = 'new-notifications::' + userId;
+          // io.emit(variable2, allUnReaddMessage2);
 
           //end Notification//
         } catch (error: any) {
@@ -300,18 +300,18 @@ const initializeSocketIO = (server: HttpServer) => {
           io.to(userSocket).emit('chat-list', ChatListSender);
 
           // Notification
-          const allUnReaddMessage = await Message.countDocuments({
-            receiver: result.sender,
-            seen: false,
-          });
-          const variable = 'new-notifications::' + result.sender;
-          io.emit(variable, allUnReaddMessage);
-          const allUnReaddMessage2 = await Message.countDocuments({
-            receiver: result.receiver,
-            seen: false,
-          });
-          const variable2 = 'new-notifications::' + result.receiver;
-          io.emit(variable2, allUnReaddMessage2);
+          // const allUnReaddMessage = await Message.countDocuments({
+          //   receiver: result.sender,
+          //   seen: false,
+          // });
+          // const variable = 'new-notifications::' + result.sender;
+          // io.emit(variable, allUnReaddMessage);
+          // const allUnReaddMessage2 = await Message.countDocuments({
+          //   receiver: result.receiver,
+          //   seen: false,
+          // });
+          // const variable2 = 'new-notifications::' + result.receiver;
+          // io.emit(variable2, allUnReaddMessage2);
 
           //end Notification//
           callbackFn(callback, {
@@ -331,36 +331,36 @@ const initializeSocketIO = (server: HttpServer) => {
       });
 
       //-----------------------Typing------------------------//
-      socket.on('typing', function (data) {
-        const chat = 'typing::' + data.chatId.toString();
-        const message = user?.name + ' is typing...';
-        socket.emit(chat, { message: message });
-      });
+      // socket.on('typing', function (data) {
+      //   const chat = 'typing::' + data.chatId.toString();
+      //   const message = user?.name + ' is typing...';
+      //   socket.emit(chat, { message: message });
+      // });
 
-      socket.on('stopTyping', function (data) {
-        const chat = 'stopTyping::' + data.chatId.toString();
-        const message = user?.name + ' is stop typing...';
-        socket.emit(chat, { message: message });
-      });
+      // socket.on('stopTyping', function (data) {
+      //   const chat = 'stopTyping::' + data.chatId.toString();
+      //   const message = user?.name + ' is stop typing...';
+      //   socket.emit(chat, { message: message });
+      // });
 
       //-----------------------Seen All------------------------//
-      socket.on('message-notification', async ({}, callback) => {
-        try {
-          const allUnReaddMessage = await Message.countDocuments({
-            receiver: user?._id,
-            seen: false,
-          });
-          const variable = 'new-notifications::' + user?._id;
-          io.emit(variable, allUnReaddMessage);
-          callbackFn(callback, { success: true, message: allUnReaddMessage });
-        } catch (error) {
-          callbackFn(callback, {
-            statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-            success: false,
-            message: 'Failed to retrieve notifications',
-          });
-        }
-      });
+      // socket.on('message-notification', async ({}, callback) => {
+      //   try {
+      //     const allUnReaddMessage = await Message.countDocuments({
+      //       receiver: user?._id,
+      //       seen: false,
+      //     });
+      //     const variable = 'new-notifications::' + user?._id;
+      //     io.emit(variable, allUnReaddMessage);
+      //     callbackFn(callback, { success: true, message: allUnReaddMessage });
+      //   } catch (error) {
+      //     callbackFn(callback, {
+      //       statusCode: httpStatus.INTERNAL_SERVER_ERROR,
+      //       success: false,
+      //       message: 'Failed to retrieve notifications',
+      //     });
+      //   }
+      // });
 
       //-----------------------Disconnect------------------------//
       socket.on('disconnect', () => {

@@ -25,6 +25,7 @@ import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { chatRoutes } from '../modules/chat/chat.route';
 import { messagesRoutes } from '../modules/message/message.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
+import { MessageImageRoutes } from '../modules/messageImage/messageImage.route';
 
 const router = Router();
 
@@ -128,6 +129,10 @@ const moduleRoutes = [
   {
     path: '/messages',
     route: messagesRoutes,
+  },
+  {
+    path: '/message-images',
+    route: MessageImageRoutes,
   },
   {
     path: '/notifications',

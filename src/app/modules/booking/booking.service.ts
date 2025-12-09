@@ -446,7 +446,7 @@ const getVendorAppHomeBookingsFromDB = async (
   const bookings = await Booking.find({
     vendor: vendorId,
     isDeleted: false,
-    request: 'approved', // ❗ important: only freelancer & owner approved bookings
+    request: 'approved',
   })
     .populate('service')
     .populate({
@@ -465,17 +465,19 @@ const getVendorAppHomeBookingsFromDB = async (
     .sort({ date: 1, slotStart: 1 })
     .select('-__v -isDeleted');
 
+  // If no bookings
   if (!bookings?.length) {
     return {
       servicingNow: [],
-      next: [],
+      nextLine: [],
+      waitingToday: [],
       upcoming: [],
     };
   }
 
   // Final result containers
   const servicingNow: typeof bookings = [];
-  const next: typeof bookings = [];
+  const next: typeof bookings = []; // today's future bookings
   const upcoming: typeof bookings = [];
 
   bookings.forEach((b) => {
@@ -484,7 +486,7 @@ const getVendorAppHomeBookingsFromDB = async (
 
     const isToday = bookingDate.getTime() === today.getTime();
 
-    // 1️⃣ Servicing Now
+    // 1️⃣ Servicing Now (now inside the slot)
     if (
       isToday &&
       b.slotStart !== undefined &&
@@ -496,25 +498,32 @@ const getVendorAppHomeBookingsFromDB = async (
       return;
     }
 
-    // 2️⃣ Next (Today's next bookings)
+    // 2️⃣ Next (Today's future bookings)
     if (isToday && b.slotStart !== undefined && b.slotStart > now) {
       next.push(b);
       return;
     }
 
-    // 3️⃣ Upcoming (Future Date Bookings)
+    // 3️⃣ Upcoming (Future date bookings)
     if (bookingDate.getTime() > today.getTime()) {
       upcoming.push(b);
       return;
     }
   });
 
-  // Sort next by earliest booking time
+  // Sort next by earliest future booking
   next.sort((a: any, b: any) => a.slotStart - b.slotStart);
+
+  // 4️⃣ Next Line = first 4
+  const nextLine = next.slice(0, 1);
+
+  // 5️⃣ Waiting Today = remaining today's future bookings
+  const waitingToday = next.slice(1);
 
   return {
     servicingNow,
-    next,
+    nextLine,
+    waitingToday,
     upcoming,
   };
 };
