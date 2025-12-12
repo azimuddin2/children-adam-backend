@@ -719,10 +719,8 @@ const getBookingServicingNowPanelFromDB = async (
     .search(bookingSearchableFields)
     .filter()
     .sort()
-    .paginate()
-    .fields();
+    .fields(); // don't paginate yet
 
-  const meta = await bookingQuery.countTotal();
   const results = await bookingQuery.modelQuery;
 
   const finalList: any[] = [];
@@ -733,10 +731,8 @@ const getBookingServicingNowPanelFromDB = async (
     const start = booking.slotStart ?? -1;
     const end = booking.slotEnd ?? -1;
 
-    // Skip past bookings
-    if (bookingDate.isBefore(today, 'day')) {
-      return;
-    }
+    // Skip completed bookings for today
+    if (bookingDate.isSame(today, 'day') && end < nowMinutes) return;
 
     // Determine dashboardStatus
     if (
@@ -754,9 +750,23 @@ const getBookingServicingNowPanelFromDB = async (
     finalList.push(booking);
   });
 
+  // Sort by service time (nearest first)
+  finalList.sort((a, b) => a.slotStart - b.slotStart);
+
+  // Apply pagination manually
+  const page = Number(query.page || 1);
+  const limit = Number(query.limit || 10);
+  const skip = (page - 1) * limit;
+  const paginatedList = finalList.slice(skip, skip + limit);
+
   return {
-    meta,
-    result: finalList,
+    meta: {
+      page,
+      limit,
+      totalDoc: finalList.length,
+      totalPage: Math.ceil(finalList.length / limit),
+    },
+    result: paginatedList,
   };
 };
 
