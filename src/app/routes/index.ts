@@ -26,6 +26,7 @@ import { chatRoutes } from '../modules/chat/chat.route';
 import { messagesRoutes } from '../modules/message/message.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
 import { MessageImageRoutes } from '../modules/messageImage/messageImage.route';
+import { StripeRoute } from '../modules/stripe/stripe.route';
 
 const router = Router();
 
@@ -109,6 +110,10 @@ const moduleRoutes = [
   {
     path: '/bookings',
     route: BookingRoutes,
+  },
+  {
+    path: '/stripe',
+    route: StripeRoute,
   },
   {
     path: '/payments',

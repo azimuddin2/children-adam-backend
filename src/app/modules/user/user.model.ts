@@ -125,10 +125,6 @@ const userSchema = new Schema<TUser, UserModel>(
         select: 0,
       },
     },
-    stripeCustomerId: {
-      type: String,
-      trim: true,
-    },
     isRegistration: {
       type: Boolean,
       default: false,
@@ -164,6 +160,27 @@ const userSchema = new Schema<TUser, UserModel>(
         type: String,
         required: false,
       },
+    },
+    stripeCustomerId: {
+      type: String,
+      default: null,
+    },
+    stripeAccountId: {
+      type: String,
+      default: null,
+    },
+    stripeAccountType: {
+      type: String,
+      enum: ['express', 'standard'],
+      default: 'express',
+    },
+    stripeOnboardingCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    stripePayoutEnabled: {
+      type: Boolean,
+      default: false,
     },
     isReferral: {
       type: Boolean,

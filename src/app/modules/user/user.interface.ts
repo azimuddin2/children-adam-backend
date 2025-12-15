@@ -33,8 +33,6 @@ export type TUser = {
     expiresAt: Date;
     status: boolean;
   };
-  // 🔹 Stripe customer ID for payments
-  stripeCustomerId?: string;
 
   isRegistration: boolean;
   freelancerReg?: Types.ObjectId | TOwnerRegistration;
@@ -48,6 +46,15 @@ export type TUser = {
     coordinates: [number, number]; // [longitude, latitude]
     streetAddress?: string;
   };
+
+  // 🔹 Stripe (Customer)
+  stripeCustomerId?: string;
+
+  // 🔹 Stripe (Vendor / Connect)
+  stripeAccountId?: string;
+  stripeAccountType?: 'express' | 'standard';
+  stripeOnboardingCompleted?: boolean;
+  stripePayoutEnabled?: boolean;
 
   // Referral
   referralCode?: string;
