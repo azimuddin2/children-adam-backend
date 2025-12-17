@@ -227,7 +227,11 @@ const getBookingsRequestFromDB = async (query: Record<string, unknown>) => {
     throw new AppError(400, 'Invalid Owner Or Freelancer ID');
   }
 
-  const filter = { vendor: vendor as string, isDeleted: false };
+  const filter = {
+    vendor: vendor as string,
+    isDeleted: false,
+    request: 'pending',
+  };
 
   const result = await Booking.find(filter)
     .populate('service')
