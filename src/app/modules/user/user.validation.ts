@@ -123,6 +123,30 @@ const updateUserValidationSchema = z.object({
   }),
 });
 
+const createCustomerByAdminSchema = z.object({
+  body: z.object({
+    fullName: z
+      .string({
+        required_error: 'Full name is required',
+        invalid_type_error: 'Full name must be a string',
+      })
+      .min(3, 'Full name must be at least 3 characters')
+      .max(50, 'Full name cannot exceed 50 characters'),
+
+    phone: z
+      .string({
+        required_error: 'Phone number is required',
+      })
+      .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number'),
+
+    email: z
+      .string({
+        required_error: 'Email is required',
+      })
+      .email('Invalid email address'),
+  }),
+});
+
 // ✅ Change User Status Validation
 const changeStatusValidationSchema = z.object({
   body: z.object({
@@ -144,6 +168,7 @@ const notificationSettingsValidationSchema = z.object({
 export const UserValidations = {
   createUserValidationSchema,
   updateUserValidationSchema,
+  createCustomerByAdminSchema,
   changeStatusValidationSchema,
   notificationSettingsValidationSchema,
 };

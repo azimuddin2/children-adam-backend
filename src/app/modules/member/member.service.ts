@@ -4,9 +4,9 @@ import { TMember } from './member.interface';
 import { Member } from './member.model';
 import { memberSearchableFields } from './member.constant';
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 import { sendEmail } from '../../utils/sendEmail';
 import { User } from '../user/user.model';
+import { generateStrongPassword } from '../user/user.utils';
 
 const createMemberIntoDB = async (payload: TMember) => {
   const session = await mongoose.startSession();
@@ -21,11 +21,8 @@ const createMemberIntoDB = async (payload: TMember) => {
       throw new AppError(400, 'User already exists with this email');
     }
 
-    // 2️⃣ Generate secure password
-    const password =
-      Math.random().toString(20).slice(-4) +
-      Math.random().toString(20).slice(-4);
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // 2️⃣ Generate STRONG password (Zod compatible)
+    const password = generateStrongPassword(); // 👈 plain password
 
     // 3️⃣ Create User (Transaction)
     await User.create(
@@ -41,7 +38,7 @@ const createMemberIntoDB = async (payload: TMember) => {
           state: 'N/A',
           zipCode: 'N/A',
 
-          password: hashedPassword,
+          password,
           isVerified: true,
         },
       ],
@@ -69,26 +66,45 @@ const createMemberIntoDB = async (payload: TMember) => {
     // 6️⃣ Send Email (Outside Transaction)
     await sendEmail(
       email,
-      'Welcome to Your Admin Panel Access 🎉',
+      'Welcome to the Admin Panel 🎉',
       `
-      <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2 style="color: #333;">Hello ${firstName}, 👋</h2>
-        <p>Your sub-admin account has been successfully created.</p>
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; color: #333;">
+    
+    <h2 style="color: #1f2937;">Hello ${firstName}, 👋</h2>
 
-        <div style="background: #f1f5ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
-          <p><strong>Login Email:</strong> ${email}</p>
-          <p><strong>Password:</strong> ${password}</p>
-        </div>
+    <p>
+      Congratulations! Your <strong>Sub-Admin</strong> account for our Admin Panel has been successfully created.
+    </p>
 
-        <p style="margin-top: 20px; color: #555;">
-          For your security, please change your password after your first login.
-        </p>
+    <p>
+      You can log in using the credentials provided below:
+    </p>
 
-        <p style="color: #888; font-size: 13px; margin-top: 30px;">
-          © ${new Date().getFullYear()} Admin Panel. All rights reserved.
-        </p>
-      </div>
-      `,
+    <div style="background: #f1f5ff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 16px 0;">
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Temporary Password:</strong> ${password}</p>
+    </div>
+
+    <p style="color: #b91c1c;">
+      🔐 <strong>Important:</strong> For security reasons, please change your password immediately after your first login.
+    </p>
+
+    <p>
+      If you encounter any issues accessing your account, feel free to contact our support team.
+    </p>
+
+    <p style="margin-top: 32px;">
+      Best regards,<br />
+      <strong>The Admin Panel Team</strong>
+    </p>
+
+    <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;" />
+
+    <p style="font-size: 12px; color: #6b7280;">
+      © ${new Date().getFullYear()} Admin Panel. All rights reserved.
+    </p>
+  </div>
+  `,
     );
 
     return newMember;

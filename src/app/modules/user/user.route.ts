@@ -26,6 +26,13 @@ router.post(
   UserControllers.signupFreelancer,
 );
 
+router.post(
+  '/admin/create-customer',
+  auth('admin'),
+  validateRequest(UserValidations.createCustomerByAdminSchema),
+  UserControllers.createCustomerByAdmin,
+);
+
 router.get('/', auth('admin'), UserControllers.getAllUsers);
 
 router.get(

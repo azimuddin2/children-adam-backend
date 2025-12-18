@@ -35,6 +35,17 @@ const signupFreelancer = catchAsync(async (req, res) => {
   });
 });
 
+const createCustomerByAdmin = catchAsync(async (req, res) => {
+  const result = await UserServices.createCustomerByAdminIntoDB(req.body);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Customer account created successfully',
+    data: result,
+  });
+});
+
 const getAllUsers = catchAsync(async (req, res) => {
   const result = await UserServices.getAllUsersFromDB(req.query);
 
@@ -136,6 +147,7 @@ export const UserControllers = {
   signupCustomer,
   signupOwner,
   signupFreelancer,
+  createCustomerByAdmin,
   getAllUsers,
   getUserProfile,
   updateUserProfile,
