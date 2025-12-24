@@ -200,6 +200,28 @@ class StripeServices<T> {
     }
   }
 
+  // Restricted accounts delete developer purpose
+  public async deleteAllRestrictedAccounts() {
+    try {
+      const accounts = await this.stripe().accounts.list({ limit: 100 });
+
+      const restrictedAccounts = accounts.data.filter(
+        (acc) => !acc.charges_enabled || !acc.payouts_enabled,
+      );
+
+      const deletePromises = restrictedAccounts.map((acc) =>
+        this.stripe().accounts.del(acc.id),
+      );
+
+      const results = await Promise.all(deletePromises);
+      console.log(`${results.length} restricted accounts deleted`);
+
+      return results;
+    } catch (error) {
+      this.handleError(error, 'Error deleting restricted accounts');
+    }
+  }
+
   public getStripe() {
     return this.stripe();
   }

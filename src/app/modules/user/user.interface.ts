@@ -52,9 +52,9 @@ export type TUser = {
 
   // 🔹 Stripe (Vendor / Connect)
   stripeAccountId?: string;
-  stripeAccountType?: 'express' | 'standard';
-  stripeOnboardingCompleted?: boolean;
-  stripePayoutEnabled?: boolean;
+  // stripeAccountType?: 'express' | 'standard';
+  // stripeOnboardingCompleted?: boolean;
+  // stripePayoutEnabled?: boolean;
 
   // Referral
   referralCode?: string;

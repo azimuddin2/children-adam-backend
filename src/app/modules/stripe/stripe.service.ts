@@ -14,24 +14,30 @@ const stripLinkAccount = async (userId: string) => {
 
   try {
     const account = await StripeService.getStripe().accounts.create({
-      country: 'US',
-      email: user?.email,
       type: 'express',
+      country: 'US',
+      email: user.email,
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
       },
     });
-    const refresh_url = `${config?.server_url}/stripe/refresh/${account.id}?userId=${user?._id}`;
 
+    const refresh_url = `${config?.server_url}/stripe/refresh/${account.id}?userId=${user?._id}`;
     const return_url = `${config?.client_Url}/seller/confirmation?userId=${user._id}&stripeAccountId=${account.id}`;
+
     const accountLink = await StripeService.connectAccount(
       return_url,
       refresh_url,
       account?.id,
     );
 
-    return accountLink.url;
+    return {
+      object: accountLink.object,
+      url: accountLink.url,
+      expires_at: accountLink.expires_at,
+      created: accountLink.created,
+    };
   } catch (error: any) {
     throw new AppError(httpStatus.BAD_GATEWAY, error.message);
   }
@@ -101,9 +107,23 @@ const returnUrl = async (payload: {
   }
 };
 
+const deleteAllRestrictedTestAccounts = async () => {
+  try {
+    const results = await StripeService.deleteAllRestrictedAccounts();
+    return {
+      success: true,
+      message: `${results.length} accounts deleted`,
+      count: results.length,
+    };
+  } catch (error: any) {
+    throw new AppError(httpStatus.BAD_REQUEST, error.message);
+  }
+};
+
 export const stripeService = {
   handleStripeOAuth,
   stripLinkAccount,
   refresh,
   returnUrl,
+  deleteAllRestrictedTestAccounts,
 };

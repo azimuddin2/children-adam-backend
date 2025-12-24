@@ -169,19 +169,19 @@ const userSchema = new Schema<TUser, UserModel>(
       type: String,
       default: null,
     },
-    stripeAccountType: {
-      type: String,
-      enum: ['express', 'standard'],
-      default: 'express',
-    },
-    stripeOnboardingCompleted: {
-      type: Boolean,
-      default: false,
-    },
-    stripePayoutEnabled: {
-      type: Boolean,
-      default: false,
-    },
+    // stripeAccountType: {
+    //   type: String,
+    //   enum: ['express', 'standard'],
+    //   default: 'express',
+    // },
+    // stripeOnboardingCompleted: {
+    //   type: Boolean,
+    //   default: false,
+    // },
+    // stripePayoutEnabled: {
+    //   type: Boolean,
+    //   default: false,
+    // },
     isReferral: {
       type: Boolean,
       default: false,

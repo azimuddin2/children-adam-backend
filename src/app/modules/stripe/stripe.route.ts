@@ -13,4 +13,10 @@ router.get('/oauth/callback', stripeController?.handleStripeOAuth);
 router.post('/return', stripeController.returnUrl);
 router.get('/refresh/:id', stripeController.refresh);
 
+router.delete(
+  '/restricted/delete-all',
+  auth('admin'),
+  stripeController.deleteAllRestricted,
+);
+
 export const StripeRoute = router;

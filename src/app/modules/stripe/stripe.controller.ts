@@ -40,9 +40,21 @@ const returnUrl = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const deleteAllRestricted = catchAsync(async (req: Request, res: Response) => {
+  const result = await stripeService.deleteAllRestrictedTestAccounts();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'All restricted accounts deleted',
+    data: result,
+  });
+});
+
 export const stripeController = {
   stripLinkAccount,
   handleStripeOAuth,
   refresh,
   returnUrl,
+  deleteAllRestricted,
 };
