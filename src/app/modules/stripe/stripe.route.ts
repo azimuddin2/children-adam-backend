@@ -4,15 +4,19 @@ import auth from '../../middlewares/auth';
 
 const router = Router();
 
+// Create stripe account + onboarding link
 router.patch(
   '/connect',
   auth('freelancer', 'owner'),
   stripeController.stripLinkAccount,
 );
-router.get('/oauth/callback', stripeController?.handleStripeOAuth);
-router.post('/return', stripeController.returnUrl);
+
+// Stripe redirects (GET only)
+router.get('/return', stripeController.returnUrl);
+
 router.get('/refresh/:id', stripeController.refresh);
 
+// Admin utility
 router.delete(
   '/restricted/delete-all',
   auth('admin'),

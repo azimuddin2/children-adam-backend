@@ -3,57 +3,53 @@ import catchAsync from '../../utils/catchAsync';
 import { stripeService } from './stripe.service';
 import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
+import config from '../../config';
+import AppError from '../../errors/AppError';
 
 const stripLinkAccount = catchAsync(async (req: Request, res: Response) => {
-  const userId = req?.user?.userId;
-
+  const userId = req.user!.userId;
   const result = await stripeService.stripLinkAccount(userId);
+
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     data: result,
-    message: 'Account creation URL generated successfully.',
+    message: 'Stripe onboarding link generated',
   });
-});
-
-const handleStripeOAuth = catchAsync(async (req: Request, res: Response) => {
-  await stripeService.handleStripeOAuth(req.query, req.user?.userId);
-
-  // Redirect to home or a specific page after successful OAuth
-  res.redirect('/');
 });
 
 const refresh = catchAsync(async (req: Request, res: Response) => {
-  const result = await stripeService.refresh(req.params?.id, req.query);
-
-  // Remove sendResponse after res.redirect to avoid setting headers twice
-  res.redirect(result);
+  const url = await stripeService.refresh(req.params.id, req.query);
+  return res.redirect(url);
 });
 
 const returnUrl = catchAsync(async (req: Request, res: Response) => {
-  const result = await stripeService.returnUrl(req.body);
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.OK,
-    data: result,
-    message: 'Stripe account updated successfully.',
+  const { userId, stripeAccountId } = req.query;
+
+  if (!userId || !stripeAccountId) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Missing query params');
+  }
+
+  await stripeService.returnUrl({
+    userId: userId as string,
+    stripeAccountId: stripeAccountId as string,
   });
+
+  return res.redirect(`${config.client_Url}/seller/success`);
 });
 
 const deleteAllRestricted = catchAsync(async (req: Request, res: Response) => {
   const result = await stripeService.deleteAllRestrictedTestAccounts();
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'All restricted accounts deleted',
+    message: 'Restricted accounts deleted',
     data: result,
   });
 });
 
 export const stripeController = {
   stripLinkAccount,
-  handleStripeOAuth,
   refresh,
   returnUrl,
   deleteAllRestricted,
