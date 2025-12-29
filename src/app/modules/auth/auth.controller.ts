@@ -73,6 +73,19 @@ const logoutUser = catchAsync(async (req, res) => {
   });
 });
 
+const handleGoogleLogin = catchAsync(async (req, res) => {
+  const result = await AuthServices.googleLogin(req.body);
+
+  const { user, accessToken, refreshToken } = result;
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User logged in with Google successfully!',
+    data: { user, accessToken, refreshToken },
+  });
+});
+
 export const AuthControllers = {
   handleLoginUser,
   handleRefreshToken,
@@ -80,4 +93,5 @@ export const AuthControllers = {
   handleForgotPassword,
   handleResetPassword,
   logoutUser,
+  handleGoogleLogin,
 };

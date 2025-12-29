@@ -8,7 +8,7 @@ import {
 import config from '../../config';
 import { User } from '../user/user.model';
 import { verifyToken } from '../../utils/verifyToken';
-import { createToken } from './auth.utils';
+import { createToken, isValidFcmToken } from './auth.utils';
 import { JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { generateOtp } from '../../utils/generateOtp';
@@ -18,7 +18,6 @@ import { TFreelancerRegistration } from '../freelancerRegistration/freelancerReg
 import { TOwnerRegistration } from '../ownerRegistration/ownerRegistration.interface';
 import { TUser } from '../user/user.interface';
 import { sendNotification } from '../notification/notification.utils';
-import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
 import httpStatus from 'http-status';
 import { Login_With, USER_ROLE } from '../user/user.constant';
 import firebaseAdmin from '../../utils/firebase';
@@ -399,20 +398,18 @@ const logoutUser = async (userId: string) => {
 
 // SOCIAL LOGIN - GOOGLE LOGIN & APPLE LOGIN
 
-const googleLogin = async (payload: any, req: Request) => {
-  console.log('Google login payload___', payload);
-
+const googleLogin = async (payload: any) => {
   try {
-    const decodedToken = await firebaseAdmin
-      .auth()
-      .verifyIdToken(payload?.token);
-
-    if (!decodedToken) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid token');
+    if (!payload?.token) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Token is required');
     }
 
-    if (!(await isValidFcmToken(payload?.fcmToken))) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'FCM Token is invalid');
+    const decodedToken = await firebaseAdmin
+      .auth()
+      .verifyIdToken(payload.token);
+
+    if (!decodedToken?.email) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid Google token');
     }
 
     if (!decodedToken.email_verified) {
@@ -422,40 +419,48 @@ const googleLogin = async (payload: any, req: Request) => {
       );
     }
 
-    const isExistUser = await User.isUserExistsByEmail(
-      decodedToken.email as string,
-    );
+    /* ================= FCM TOKEN VALIDATION ================= */
+    if (payload?.fcmToken) {
+      const isValid = await isValidFcmToken(payload.fcmToken);
+      if (!isValid) {
+        throw new AppError(httpStatus.BAD_REQUEST, 'Invalid FCM token');
+      }
+    }
 
-    /* ================= EXISTING USER ================= */
-    if (isExistUser) {
-      if (isExistUser.isDeleted) {
-        throw new AppError(403, 'This user account is deleted!');
+    /* ================= CHECK USER EXISTS ================= */
+    const existingUser = await User.isUserExistsByEmail(decodedToken.email);
+
+    /* =======================================================
+       =============== EXISTING USER LOGIN ==================
+       ======================================================= */
+    if (existingUser) {
+      if (existingUser.isDeleted) {
+        throw new AppError(httpStatus.FORBIDDEN, 'User account is deleted');
       }
 
-      if (isExistUser.status === 'blocked') {
-        throw new AppError(403, 'This user is blocked!');
+      if (existingUser.status === 'blocked') {
+        throw new AppError(httpStatus.FORBIDDEN, 'User is blocked');
       }
 
-      // Block non-google login attempts
-      if (isExistUser.loginWth !== Login_With.google) {
+      if (existingUser.loginWth !== Login_With.google) {
         throw new AppError(
           httpStatus.FORBIDDEN,
-          `This account is registered with ${isExistUser.loginWth}`,
+          `Account registered with ${existingUser.loginWth}`,
         );
       }
 
-      if (!isExistUser.verification?.status) {
+      if (!existingUser.verification?.status) {
         throw new AppError(
           httpStatus.FORBIDDEN,
           'User account is not verified',
         );
       }
 
+      /* ================= CREATE JWT ================= */
       const jwtPayload: TJwtPayload = {
-        userId: isExistUser._id.toString(),
-        name: isExistUser.fullName,
-        email: isExistUser.email,
-        role: isExistUser.role,
+        userId: existingUser._id.toString(),
+        email: existingUser.email,
+        role: existingUser.role,
       };
 
       const accessToken = createToken(
@@ -470,31 +475,50 @@ const googleLogin = async (payload: any, req: Request) => {
         config.jwt_refresh_expires_in!,
       );
 
-      // Update only FCM token (no device tracking)
-      await User.findByIdAndUpdate(isExistUser._id, {
-        fcmToken: payload?.fcmToken,
-      });
+      /* ================= UPDATE FCM TOKEN ================= */
+      if (payload?.fcmToken) {
+        await User.findByIdAndUpdate(existingUser._id, {
+          fcmToken: payload.fcmToken,
+        });
+      }
 
-      return { user: isExistUser, accessToken, refreshToken };
+      return {
+        user: existingUser,
+        accessToken,
+        refreshToken,
+      };
     }
 
-    /* ================= NEW USER ================= */
-    const user = await User.create({
-      name: decodedToken.name,
+    /* =======================================================
+       ================== NEW USER CREATE ====================
+       ======================================================= */
+
+    const newUser = await User.create({
+      fullName: decodedToken.name || 'Google User',
       email: decodedToken.email,
-      profile: decodedToken.picture,
-      phoneNumber: decodedToken.phone_number,
-      role: payload?.role ?? USER_ROLE.customer,
+      phone: 'N/A',
+
+      streetAddress: 'N/A',
+      city: 'N/A',
+      state: 'N/A',
+      zipCode: 'N/A',
+
+      password: 'GOOGLE_LOGIN_NO_PASSWORD',
+      role: USER_ROLE.customer,
       loginWth: Login_With.google,
+
+      isVerified: true,
       verification: { status: true },
-      expireAt: null,
+
+      image: decodedToken.picture || null,
+      fcmToken: payload?.fcmToken || null,
     });
 
+    /* ================= CREATE JWT FOR NEW USER ================= */
     const jwtPayload: TJwtPayload = {
-      userId: user._id.toString(),
-      name: user.fullName,
-      email: user.email,
-      role: user.role,
+      userId: newUser._id.toString(),
+      email: newUser.email,
+      role: newUser.role,
     };
 
     const accessToken = createToken(
@@ -509,12 +533,11 @@ const googleLogin = async (payload: any, req: Request) => {
       config.jwt_refresh_expires_in!,
     );
 
-    // Save FCM token for new user as well
-    await User.findByIdAndUpdate(user._id, {
-      fcmToken: payload?.fcmToken,
-    });
-
-    return { user, accessToken, refreshToken };
+    return {
+      user: newUser,
+      accessToken,
+      refreshToken,
+    };
   } catch (error: any) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -530,4 +553,5 @@ export const AuthServices = {
   forgotPassword,
   resetPassword,
   logoutUser,
+  googleLogin,
 };
