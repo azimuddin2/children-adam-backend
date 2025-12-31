@@ -6,6 +6,11 @@ import { User } from '../user/user.model';
 import { TJwtPayload } from '../auth/auth.interface';
 import { TVerifyOtp } from './otp.interface';
 import { createToken } from '../auth/auth.utils';
+import { generateOtp } from '../../utils/generateOtp';
+import jwt, { Secret } from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
+import { sendEmail } from '../../utils/sendEmail';
 
 const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   if (!token) {
@@ -73,6 +78,69 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   return { token: accessToken };
 };
 
+const resendOtp = async (email: string) => {
+  const user = await User.findOne({ email }).select(
+    '_id email name verification',
+  );
+
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  // Optional: prevent resending if already verified
+  if (user.verification?.status === true) {
+    throw new AppError(400, 'Account already verified');
+  }
+
+  const otp = generateOtp();
+  const expiresAt = moment().add(3, 'minutes').toDate();
+
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    {
+      verification: {
+        otp,
+        expiresAt,
+        status: false,
+      },
+    },
+    { new: true },
+  );
+
+  if (!updatedUser) {
+    throw new AppError(500, 'Failed to resend OTP');
+  }
+
+  const token = jwt.sign(
+    {
+      email: user.email,
+      userId: user._id,
+    },
+    config.jwt_access_secret as Secret,
+    { expiresIn: '3m' },
+  );
+
+  const otpEmailPath = path.join(process.cwd(), 'public/view/otp_mail.html');
+
+  const emailTemplate = fs
+    .readFileSync(otpEmailPath, 'utf8')
+    .replace('{{fullName}}', user.fullName)
+    .replace('{{otpCode}}', otp)
+    .replace('{{email}}', user.email)
+    .replace(
+      '{{verifyUrl}}',
+      `${config.server_url}/otp/verify-link?token=${token}`,
+    );
+
+  await sendEmail(user.email, 'Your One Time OTP', emailTemplate);
+
+  return {
+    token,
+    expiresIn: '3 minutes',
+  };
+};
+
 export const OtpServices = {
   verifyOtp,
+  resendOtp,
 };
