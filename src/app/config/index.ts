@@ -26,4 +26,8 @@ export default {
   stripe_api_key: process.env.STRIPE_API_KEY,
   stripe_api_secret: process.env.STRIPE_API_SECRET,
   currency: process.env.CURRENCY || 'usd',
+
+  firebase_project_id: process.env.FIREBASE_PROJECT_ID,
+  firebase_private_key: process.env.FIREBASE_PRIVATE_KEY,
+  firebase_client_email: process.env.FIREBASE_CLIENT_EMAIL,
 };
