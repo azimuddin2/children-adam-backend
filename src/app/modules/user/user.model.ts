@@ -16,26 +16,29 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     phone: {
       type: String,
-      required: [true, 'Phone number is required'],
       trim: true,
+      unique: true,
+      sparse: true,
       validate: {
         validator: function (v: string) {
+          if (!v) return true;
           return /^\+?[0-9]{10,15}$/.test(v);
         },
-        message: (props: any) => `${props.value} is not a valid phone number!`,
+        message: 'Invalid phone number',
       },
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
       trim: true,
       unique: true,
+      sparse: true,
       lowercase: true,
       validate: {
         validator: function (v: string) {
+          if (!v) return true;
           return /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(v);
         },
-        message: 'Please enter a valid email address',
+        message: 'Invalid email address',
       },
     },
     streetAddress: {
@@ -106,9 +109,14 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Boolean,
       default: false,
     },
+
     isVerified: {
       type: Boolean,
       default: false,
+    },
+    verificationMethod: {
+      type: String,
+      enum: ['email', 'phone'],
     },
     verification: {
       otp: {
@@ -126,7 +134,7 @@ const userSchema = new Schema<TUser, UserModel>(
       },
     },
 
-    loginWth: {
+    loginWith: {
       type: String,
       enum: Login_With,
       default: Login_With.credentials,
@@ -209,6 +217,13 @@ userSchema.pre('save', async function (next) {
 // ✅ Clear sensitive data after saving
 userSchema.post('save', function (doc, next) {
   doc.password = '';
+  next();
+});
+
+userSchema.pre('validate', function (next) {
+  if (!this.email && !this.phone) {
+    next(new Error('Email or Phone is required'));
+  }
   next();
 });
 

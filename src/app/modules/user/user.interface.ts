@@ -28,13 +28,14 @@ export type TUser = {
   image: string | null;
   isDeleted: boolean;
   isVerified: boolean;
+  verificationMethod: 'email' | 'phone';
   verification: {
     otp: string | number;
     expiresAt: Date;
     status: boolean;
   };
 
-  loginWth: 'google' | 'apple' | 'credentials';
+  loginWith: 'google' | 'apple' | 'credentials';
 
   isRegistration: boolean;
   freelancerReg?: Types.ObjectId | TOwnerRegistration;

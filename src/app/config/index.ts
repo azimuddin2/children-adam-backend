@@ -30,4 +30,8 @@ export default {
   firebase_project_id: process.env.FIREBASE_PROJECT_ID,
   firebase_private_key: process.env.FIREBASE_PRIVATE_KEY,
   firebase_client_email: process.env.FIREBASE_CLIENT_EMAIL,
+
+  twilio_account_sid: process.env.TWILIO_ACCOUNT_SID,
+  twilio_auth_token: process.env.TWILIO_AUTH_TOKEN,
+  twilio_verify_sid: process.env.TWILIO_VERIFY_SID,
 };
