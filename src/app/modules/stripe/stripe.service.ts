@@ -7,19 +7,42 @@ import { User } from '../user/user.model';
 // Create Stripe Express account & onboarding link
 const stripLinkAccount = async (userId: string) => {
   const user = await User.findById(userId);
-  if (!user) throw new AppError(httpStatus.BAD_REQUEST, 'User not found');
+  if (!user) throw new AppError(400, 'User not found');
 
-  // 1️⃣ Prevent creating multiple accounts
+  // CASE 1: User already has stripe account
   if (user.stripeAccountId) {
+    const account = await StripeService.getStripe().accounts.retrieve(
+      user.stripeAccountId,
+    );
+
+    // ✅ If onboarding already completed
+    if (account.details_submitted) {
+      return {
+        object: 'already_connected',
+        message: 'Stripe account already connected',
+        accountId: user.stripeAccountId,
+      };
+    }
+
+    // 🔁 Onboarding incomplete → generate new link
+    const refresh_url = `${config.server_url}/api/v1/stripe/refresh/${account.id}?userId=${user._id}`;
+    const return_url = `${config.server_url}/api/v1/stripe/return?userId=${user._id}&stripeAccountId=${account.id}`;
+
+    const accountLink = await StripeService.connectAccount(
+      return_url,
+      refresh_url,
+      account.id,
+    );
+
     return {
-      object: 'already_exists',
-      url: null,
-      message: 'User already has a Stripe account',
-      accountId: user.stripeAccountId,
+      object: accountLink.object,
+      url: accountLink.url,
+      expires_at: accountLink.expires_at,
+      accountId: account.id,
     };
   }
 
-  //2️⃣ Create new Stripe Express account
+  // CASE 2: No stripe account → create new
   const account = await StripeService.getStripe().accounts.create({
     type: 'express',
     country: 'US',
@@ -29,6 +52,10 @@ const stripLinkAccount = async (userId: string) => {
       transfers: { requested: true },
     },
   });
+
+  // Save accountId immediately
+  user.stripeAccountId = account.id;
+  await user.save();
 
   const refresh_url = `${config.server_url}/api/v1/stripe/refresh/${account.id}?userId=${user._id}`;
   const return_url = `${config.server_url}/api/v1/stripe/return?userId=${user._id}&stripeAccountId=${account.id}`;
@@ -43,7 +70,6 @@ const stripLinkAccount = async (userId: string) => {
     object: accountLink.object,
     url: accountLink.url,
     expires_at: accountLink.expires_at,
-    created: accountLink.created,
     accountId: account.id,
   };
 };
@@ -69,14 +95,22 @@ const returnUrl = async (payload: {
   userId: string;
   stripeAccountId: string;
 }) => {
+  const account = await StripeService.getStripe().accounts.retrieve(
+    payload.stripeAccountId,
+  );
+
+  // Ensure stripeAccountId saved
   const user = await User.findByIdAndUpdate(
     payload.userId,
     { stripeAccountId: payload.stripeAccountId },
-    { new: true }, // updated document return
+    { new: true },
   );
 
-  if (!user) throw new AppError(httpStatus.BAD_REQUEST, 'User not found');
-  return true;
+  if (!user) throw new AppError(400, 'User not found');
+
+  return {
+    isCompleted: account.details_submitted,
+  };
 };
 
 // Admin: delete all restricted test accounts

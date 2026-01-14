@@ -30,18 +30,30 @@ const returnUrl = catchAsync(async (req: Request, res: Response) => {
     throw new AppError(httpStatus.BAD_REQUEST, 'Missing query params');
   }
 
-  await stripeService.returnUrl({
+  const result = await stripeService.returnUrl({
     userId: userId as string,
     stripeAccountId: stripeAccountId as string,
   });
 
-  // Instead of redirect, return JSON for mobile apps
-  sendResponse(res, {
+  // 🔴 Incomplete onboarding
+  if (!result.isCompleted) {
+    return sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Stripe onboarding incomplete',
+      data: {
+        redirectUrl: `${config.client_Url}/seller/stripe-incomplete`,
+      },
+    });
+  }
+
+  // 🟢 Completed onboarding
+  return sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Stripe Onboarding Account Completed',
+    message: 'Stripe onboarding completed',
     data: {
-      redirectUrl: `${config.client_Url}/seller/success`,
+      redirectUrl: `${config.client_Url}/seller/stripe-success`,
     },
   });
 });
