@@ -331,7 +331,7 @@ const resetPassword = async (token: string, payload: TResetPassword) => {
     throw new AppError(403, 'This user is blocked!');
   }
 
-  const verifyExpiresAt = user?.verification?.expiresAt;
+  const verifyExpiresAt = user?.verification?.expiresAt as Date;
   if (new Date() > verifyExpiresAt) {
     throw new AppError(400, 'otp has expired. Please resend it');
   }
@@ -400,13 +400,13 @@ const logoutUser = async (userId: string) => {
 
 const googleLogin = async (payload: any) => {
   try {
+    console.log('Google Token:', payload);
+
     if (!payload?.token) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Token is required');
     }
 
     const decodedToken = await admin.auth().verifyIdToken(payload.token);
-
-    console.log('Decoded Google Token:', decodedToken);
 
     if (!decodedToken?.email) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Invalid Google token');
