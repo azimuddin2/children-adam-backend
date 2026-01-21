@@ -15,7 +15,7 @@ const generateQRCode = async (ownerId: string) => {
     await owner.save();
   }
 
-  const qrPayload = `${config.server_url}/walkin/${owner.qrToken}`;
+  const qrPayload = `${config.server_url}/api/v1/qr-code/walkin/${owner.qrToken}`;
   const qrImage = await QRCode.toDataURL(qrPayload);
 
   return {
@@ -25,6 +25,19 @@ const generateQRCode = async (ownerId: string) => {
   };
 };
 
+const getWalkInDetailsByQRToken = async (qrToken: string) => {
+  const owner = await OwnerRegistration.findOne({ qrToken }).populate(
+    'services',
+  );
+
+  if (!owner) {
+    throw new AppError(404, 'Invalid or Expired QR Token');
+  }
+
+  return owner;
+};
+
 export const QRCodeService = {
   generateQRCode,
+  getWalkInDetailsByQRToken,
 };

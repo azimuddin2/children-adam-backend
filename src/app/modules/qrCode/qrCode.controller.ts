@@ -14,6 +14,19 @@ const generateQR = catchAsync(async (req, res) => {
   });
 });
 
+const getWalkInDetailsByQRToken = catchAsync(async (req, res) => {
+  const { qrToken } = req.params;
+  const result = await QRCodeService.getWalkInDetailsByQRToken(qrToken);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Walk-in details retrieved successfully',
+    data: result,
+  });
+});
+
 export const QRCodeController = {
   generateQR,
+  getWalkInDetailsByQRToken,
 };

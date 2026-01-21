@@ -30,7 +30,7 @@ const createBookingValidationSchema = z.object({
 
     serviceLocation: z.string().min(1, 'Service location is required'),
 
-    notes: z.string().min(1, 'Notes is required'),
+    notes: z.string().min(1, 'Notes is required').optional(),
 
     totalPrice: z.number().min(0, 'Total price must be a positive number'),
 

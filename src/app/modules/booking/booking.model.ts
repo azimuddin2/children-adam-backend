@@ -106,7 +106,7 @@ const bookingSchema = new Schema<TBooking>(
     },
     serviceLocation: {
       type: String,
-      required: true,
+      required: false,
     },
     images: {
       type: [imageSchema],
@@ -114,7 +114,7 @@ const bookingSchema = new Schema<TBooking>(
     },
     notes: {
       type: String,
-      required: true,
+      required: false,
     },
     totalPrice: {
       type: Number,

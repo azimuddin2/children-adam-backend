@@ -208,9 +208,12 @@ const createWalkInBookingIntoDB = async (payload: TBooking) => {
   const getService = await OwnerService.findById(service);
   if (!getService) throw new AppError(404, 'Service not found');
 
-  const serviceDuration = Number(getService.time);
-  if (isNaN(serviceDuration) || serviceDuration <= 0)
+  // Extract number from string like "60 minutes"
+  const serviceDuration = parseInt(getService.time, 10);
+
+  if (isNaN(serviceDuration) || serviceDuration <= 0) {
     throw new AppError(400, 'Invalid service duration');
+  }
 
   // 3️⃣ Get today date
   const today = new Date().toISOString().split('T')[0];
@@ -253,7 +256,6 @@ const createWalkInBookingIntoDB = async (payload: TBooking) => {
     slotStart,
     slotEnd,
     totalPrice: getService.price,
-    status: lastBooking ? 'waiting' : 'serving',
     dashboardStatus: lastBooking ? 'nextLine' : 'servicingNow',
     request: 'approved',
     isPaid: true,

@@ -48,9 +48,9 @@ export type TBooking = {
 
   specialist?: Types.ObjectId | TSpecialist;
 
-  serviceLocation: string;
+  serviceLocation?: string;
   images: TImage[];
-  notes: string;
+  notes?: string;
   totalPrice: number;
 
   status: TBookingStatus;
