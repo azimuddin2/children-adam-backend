@@ -52,6 +52,18 @@ router.get(
   BookingControllers.getBookingsHistoryByVendor,
 );
 
+router.get(
+  '/pending-bookings',
+  // auth('admin', 'sub-admin'),
+  BookingControllers.getPendingBookingServices,
+);
+
+router.get(
+  '/upcoming-bookings',
+  // auth('admin', 'sub-admin'),
+  BookingControllers.getUpcomingBookings,
+);
+
 router.get('/:id', BookingControllers.getBookingById);
 
 router.put(

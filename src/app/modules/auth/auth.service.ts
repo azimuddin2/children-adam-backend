@@ -406,6 +406,7 @@ const googleLogin = async (payload: any) => {
     }
 
     const decodedToken = await admin.auth().verifyIdToken(payload.token);
+    console.log('Decoded Google Token:', decodedToken);
 
     if (!decodedToken?.email) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Invalid Google token');

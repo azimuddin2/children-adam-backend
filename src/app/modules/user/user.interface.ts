@@ -22,7 +22,7 @@ export type TUser = {
   needsPasswordChange: boolean;
   passwordChangeAt?: Date;
   gender?: TGender;
-  selectSalon?: string;
+  salonAffiliated?: string;
   role: TRole;
   status: TStatus;
   image: string | null;

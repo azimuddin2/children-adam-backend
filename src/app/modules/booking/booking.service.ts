@@ -13,6 +13,7 @@ import { getCurrentMinutes } from './booking.utils';
 import { sendNotification } from '../notification/notification.utils';
 import dayjs from 'dayjs';
 import { OwnerRegistration } from '../ownerRegistration/ownerRegistration.model';
+import { FreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.model';
 
 // Create Online Booking API
 const createOnlineBookingIntoDB = async (payload: TBooking, files: any) => {
@@ -101,6 +102,37 @@ const createOnlineBookingIntoDB = async (payload: TBooking, files: any) => {
 
   const serviceExists = await ServiceModel.findById(service);
   if (!serviceExists) throw new AppError(404, 'Service does not exist');
+
+  // -------------------------------
+  // 7️⃣.5️⃣ Assign ownerReg / freelancerReg
+  // -------------------------------
+  if (serviceType === SERVICE_MODEL_TYPE.OwnerService) {
+    const ownerRegistration = await OwnerRegistration.findOne({
+      user: vendor,
+      isDeleted: false,
+    });
+
+    if (!ownerRegistration) {
+      throw new AppError(404, 'Owner registration not found');
+    }
+
+    payload.ownerReg = ownerRegistration._id;
+    payload.freelancerReg = undefined;
+  }
+
+  if (serviceType === SERVICE_MODEL_TYPE.FreelancerService) {
+    const freelancerRegistration = await FreelancerRegistration.findOne({
+      user: vendor,
+      isDeleted: false,
+    });
+
+    if (!freelancerRegistration) {
+      throw new AppError(404, 'Freelancer registration not found');
+    }
+
+    payload.freelancerReg = freelancerRegistration._id;
+    payload.ownerReg = undefined;
+  }
 
   // -------------------------------
   // 8️⃣ Specialist Logic
@@ -870,6 +902,96 @@ const getBookingServicingNowPanelFromDB = async (
   };
 };
 
+const getPendingBookingServicesFromDB = async () => {
+  const pendingBookings = await Booking.find({
+    isDeleted: false,
+    request: 'pending',
+  })
+    .populate({
+      path: 'service',
+      select: 'name price duration category images',
+    })
+    .populate({
+      path: 'ownerReg',
+      select: 'salonName',
+    })
+    .populate({
+      path: 'freelancerReg',
+      select: 'name',
+    })
+    .populate({
+      path: 'vendor',
+      select:
+        '_id fullName email phone streetAddress city state image location',
+    })
+    .populate({
+      path: 'customer',
+      select: '_id fullName email image',
+    })
+    .sort({ createdAt: -1 })
+    .select(
+      '-__v -isDeleted -addOnServices -notes -specialist -images -qrToken -queueNumber -bookingSource -status',
+    );
+
+  return pendingBookings;
+};
+
+const getUpcomingBookingsFromDB = async () => {
+  const today = dayjs().startOf('day');
+
+  const results = await Booking.find({
+    isDeleted: false,
+    request: 'approved',
+  })
+    .populate({
+      path: 'service',
+      select: 'name price duration category images',
+    })
+    .populate({
+      path: 'ownerReg',
+      select: 'salonName',
+    })
+    .populate({
+      path: 'freelancerReg',
+      select: 'name',
+    })
+    .populate({
+      path: 'vendor',
+      select:
+        '_id fullName email phone streetAddress city state image location',
+    })
+    .populate({
+      path: 'customer',
+      select: '_id fullName email image',
+    })
+    .sort({ createdAt: -1 })
+    .select(
+      '-__v -isDeleted -addOnServices -notes -specialist -images -qrToken -queueNumber -bookingSource -status',
+    );
+
+  const upcomingList: any[] = [];
+
+  for (const doc of results) {
+    const booking = doc.toObject();
+    const bookingDate = dayjs(booking.date);
+
+    // ✅ only future bookings
+    if (bookingDate.isAfter(today, 'day')) {
+      booking.dashboardStatus = 'upcoming';
+      upcomingList.push(booking);
+    }
+  }
+
+  // 🔥 sort by date then slot
+  upcomingList.sort((a, b) => {
+    const dateDiff = dayjs(a.date).diff(dayjs(b.date));
+    if (dateDiff !== 0) return dateDiff;
+    return (a.slotStart ?? 0) - (b.slotStart ?? 0);
+  });
+
+  return upcomingList;
+};
+
 export const BookingServices = {
   createOnlineBookingIntoDB,
   createWalkInBookingIntoDB,
@@ -884,4 +1006,6 @@ export const BookingServices = {
   bookingDeclineRequestIntoDB,
   getVendorAppHomeBookingsFromDB,
   getBookingServicingNowPanelFromDB,
+  getPendingBookingServicesFromDB,
+  getUpcomingBookingsFromDB,
 };

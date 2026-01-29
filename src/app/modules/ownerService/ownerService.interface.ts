@@ -1,4 +1,4 @@
-import { ObjectId, Types } from 'mongoose';
+import { ObjectId } from 'mongoose';
 import { TUser } from '../user/user.interface';
 
 export type TImage = {

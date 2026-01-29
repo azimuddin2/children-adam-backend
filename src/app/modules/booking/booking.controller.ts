@@ -187,6 +187,28 @@ const getBookingServicingNowPanel = catchAsync(async (req, res) => {
   });
 });
 
+const getPendingBookingServices = catchAsync(async (req, res) => {
+  const result = await BookingServices.getPendingBookingServicesFromDB();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Pending booking services retrieved successfully',
+    data: result,
+  });
+});
+
+const getUpcomingBookings = catchAsync(async (req, res) => {
+  const result = await BookingServices.getUpcomingBookingsFromDB();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Upcoming bookings retrieved successfully',
+    data: result,
+  });
+});
+
 export const BookingControllers = {
   createOnlineBooking,
   createWalkInBooking,
@@ -201,4 +223,6 @@ export const BookingControllers = {
   bookingDeclineRequest,
   getVendorAppHomeBookings,
   getBookingServicingNowPanel,
+  getPendingBookingServices,
+  getUpcomingBookings,
 };

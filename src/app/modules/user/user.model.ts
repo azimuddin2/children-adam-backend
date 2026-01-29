@@ -16,15 +16,13 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     phone: {
       type: String,
+      required: [true, 'Phone Number is required'],
       trim: true,
-      unique: true,
       validate: {
-        validator: function (v: string) {
-          if (!v) return true;
-          return /^\+[1-9][0-9]{9,14}$/.test(v);
+        validator: function (v) {
+          return /^\+?[0-9]{10,15}$/.test(v);
         },
-        message:
-          'Phone number must be in international format (e.g. +17133745074)',
+        message: (props) => `${props.value} is not a valid phone number`,
       },
     },
     email: {
@@ -81,7 +79,7 @@ const userSchema = new Schema<TUser, UserModel>(
       required: false,
       default: null,
     },
-    selectSalon: {
+    salonAffiliated: {
       type: String,
     },
     role: {

@@ -1,6 +1,8 @@
 import { Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
 import { TSpecialist } from '../Specialist/Specialist.interface';
+import { TOwnerRegistration } from '../ownerRegistration/ownerRegistration.interface';
+import { TFreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.interface';
 
 export type TBookingStatus = 'pending' | 'canceled' | 'completed';
 
@@ -29,8 +31,8 @@ export type TBooking = {
   customerName?: string; // Walk-in customer's name
   phone?: string; // Walk-in customer's phone number
 
-  freelancerReg?: Types.ObjectId; // target freelancer
-  ownerReg?: Types.ObjectId; // target owner
+  freelancerReg?: Types.ObjectId | TFreelancerRegistration; // target freelancer
+  ownerReg?: Types.ObjectId | TOwnerRegistration; // target owner
 
   service: Types.ObjectId;
   serviceType: SERVICE_MODEL_TYPE;
