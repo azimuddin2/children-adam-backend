@@ -9,6 +9,8 @@ import StripeService from '../../class/stripe';
 import { sendNotification } from '../notification/notification.utils';
 import { TPayment } from './payment.interface';
 import { generateTrxId } from './payment.utils';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { paymentSearchableFields } from './payment.constant';
 
 const createPayment = async (payload: TPayment) => {
   const DEPOSIT_AMOUNT = 10; // USD Fixed deposit amount
@@ -222,8 +224,34 @@ const cancelPayment = async (paymentId: string) => {
   }
 };
 
+const getAllPaymentsFormDB = async (query: Record<string, unknown>) => {
+  const paymentQuery = new QueryBuilder(
+    Payment.find({ isDeleted: false, isPaid: true, status: 'paid' })
+      .populate({
+        path: 'user',
+        select: 'fullName email phone streetAddress stripeCustomerId ',
+      })
+      .populate({
+        path: 'vendor',
+        select: 'fullName email phone streetAddress stripeAccountId',
+      }),
+    query,
+  )
+    .search(paymentSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await paymentQuery.countTotal();
+  const data = await paymentQuery.modelQuery;
+
+  return { meta, data };
+};
+
 export const PaymentService = {
   createPayment,
   confirmPayment,
   cancelPayment,
+  getAllPaymentsFormDB,
 };

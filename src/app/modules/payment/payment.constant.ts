@@ -13,3 +13,15 @@ export enum PAYMENT_STATUS {
   refunded = 'refunded',
   cancelled = 'cancelled',
 }
+
+export const paymentSearchableFields = [
+  'trnId',
+  'type',
+  'status',
+  'user.fullName',
+  'user.email',
+  'user.phone',
+  'vendor.fullName',
+  'vendor.email',
+  'vendor.phone',
+];

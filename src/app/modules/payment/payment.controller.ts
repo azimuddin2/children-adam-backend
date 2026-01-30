@@ -356,8 +356,21 @@ const cancelPayment = catchAsync(async (req: Request, res: Response) => {
   */
 });
 
+const getAllPayments = catchAsync(async (req, res) => {
+  const result = await PaymentService.getAllPaymentsFormDB(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Payments retrieved successfully',
+    meta: result.meta,
+    data: result.data,
+  });
+});
+
 export const PaymentController = {
   createPayment,
   confirmPayment,
   cancelPayment,
+  getAllPayments,
 };

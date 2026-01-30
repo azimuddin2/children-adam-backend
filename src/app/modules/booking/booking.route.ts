@@ -54,13 +54,13 @@ router.get(
 
 router.get(
   '/pending-bookings',
-  // auth('admin', 'sub-admin'),
+  auth('admin', 'sub-admin'),
   BookingControllers.getPendingBookingServices,
 );
 
 router.get(
   '/upcoming-bookings',
-  // auth('admin', 'sub-admin'),
+  auth('admin', 'sub-admin'),
   BookingControllers.getUpcomingBookings,
 );
 
