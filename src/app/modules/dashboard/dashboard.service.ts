@@ -1,6 +1,87 @@
+import { Booking } from '../booking/booking.model';
 import { FreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.model';
 import { OwnerRegistration } from '../ownerRegistration/ownerRegistration.model';
 import { Payment } from '../payment/payment.model';
+import { User } from '../user/user.model';
+import { TEarningRange } from './dashboard.interface';
+import { getDateRange } from './dashboard.utils';
+
+const getOverviewStatsFromDB = async (
+  earningRange: TEarningRange = 'weekly',
+) => {
+  // 🔹 Today range
+  const now = new Date();
+  const startOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+  const endOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+
+  // 🔹 Earnings range (weekly / monthly / yearly)
+  const { start, end } = getDateRange(earningRange);
+
+  const [
+    totalUsers,
+    todayBookings,
+    earningsResult,
+    ownerRequests,
+    freelancerRequests,
+  ] = await Promise.all([
+    // Total Users
+    User.countDocuments({ isDeleted: false }),
+
+    // Today Bookings
+    Booking.countDocuments({
+      isDeleted: false,
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    }),
+
+    // Earnings (Admin revenue only)
+    Payment.aggregate([
+      {
+        $match: {
+          isDeleted: false,
+          isPaid: true,
+          createdAt: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: '$adminAmount' },
+        },
+      },
+    ]),
+
+    // Registration Requests
+    OwnerRegistration.countDocuments({ status: 'pending' }),
+    FreelancerRegistration.countDocuments({ status: 'pending' }),
+  ]);
+
+  return {
+    totalUsers,
+    todayBookings,
+    totalEarnings: earningsResult[0]?.totalEarnings || 0,
+    registrationRequests: {
+      owner: ownerRequests,
+      freelancer: freelancerRequests,
+      total: ownerRequests + freelancerRequests,
+    },
+  };
+};
 
 const getRequestStatsFromDB = async () => {
   // 1. Define Date Ranges
@@ -151,6 +232,7 @@ const getEarningsStatsFromDB = async () => {
 };
 
 export const DashboardService = {
+  getOverviewStatsFromDB,
   getRequestStatsFromDB,
   getEarningsStatsFromDB,
 };
