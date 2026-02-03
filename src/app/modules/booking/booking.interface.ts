@@ -48,7 +48,7 @@ export type TBooking = {
   time: string;
   duration: string;
 
-  specialist?: Types.ObjectId | TSpecialist;
+  specialist: Types.ObjectId | TSpecialist;
 
   serviceLocation?: string;
   images: TImage[];

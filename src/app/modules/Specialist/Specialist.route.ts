@@ -20,7 +20,7 @@ router.post(
 
 router.get(
   '/',
-  auth('customer', 'freelancer', 'owner', 'admin'),
+  // auth('customer', 'freelancer', 'owner', 'admin'),
   SpecialistControllers.getAllSpecialist,
 );
 

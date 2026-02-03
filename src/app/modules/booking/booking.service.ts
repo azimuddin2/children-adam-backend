@@ -27,7 +27,7 @@ const createOnlineBookingIntoDB = async (payload: TBooking, files: any) => {
   if (!timeRegex.test(time)) {
     throw new AppError(
       400,
-      'Invalid time format. Use: "hh:mm AM - hh:mm PM" (Example: 05:30 PM - 06:30 PM)',
+      'Invalid time format. Use: "hh:mm AM - hh:mm PM" (Example: 05:00 PM - 06:00 PM)',
     );
   }
 
@@ -226,69 +226,106 @@ const createOnlineBookingIntoDB = async (payload: TBooking, files: any) => {
   return booking;
 };
 
-// Create Walk-in booking API
 const createWalkInBookingIntoDB = async (payload: TBooking) => {
-  const { qrToken, customerName, phone, service } = payload;
+  const { qrToken, customerName, phone, email, service, specialist } = payload;
 
-  console.log('Payload received for walk-in booking:', payload);
-
-  // 1️⃣ Validate QR token
+  // 1️⃣ Validate QR token & service
   const owner = await OwnerRegistration.findOne({ qrToken });
   if (!owner) throw new AppError(404, 'Invalid QR code');
 
-  // 2️⃣ Get service
   const getService = await OwnerService.findById(service);
   if (!getService) throw new AppError(404, 'Service not found');
 
-  // Extract number from string like "60 minutes"
-  const serviceDuration = parseInt(getService.time, 10);
+  const serviceDuration = parseInt(getService.time, 10); // in minutes
 
-  if (isNaN(serviceDuration) || serviceDuration <= 0) {
-    throw new AppError(400, 'Invalid service duration');
-  }
+  if (!specialist) throw new AppError(400, 'Specialist is required');
 
-  // 3️⃣ Get today date
-  const today = new Date().toISOString().split('T')[0];
-
-  // 4️⃣ Find last booking for this vendor today
-  const lastBooking = await Booking.findOne({
-    vendor: owner.user,
-    date: today,
+  // 2️⃣ Validate specialist
+  const dbSpecialist = await Specialist.findOne({
+    _id: specialist,
+    owner: owner.user,
     isDeleted: false,
-  }).sort({ slotEnd: -1 });
+  });
+  if (!dbSpecialist) throw new AppError(404, 'Specialist not found');
 
-  // 5️⃣ Auto calculate slotStart & slotEnd
+  // 3️⃣ Setup date & time
+  const today = new Date().toISOString().split('T')[0];
   const now = new Date();
   const nowInMinutes = now.getHours() * 60 + now.getMinutes();
 
-  const slotStart = lastBooking?.slotEnd ?? nowInMinutes; // If undefined, use nowInMinutes
-  const slotEnd = slotStart + serviceDuration;
+  // 4️⃣ Define fixed hourly slots
+  const slots = [];
+  for (let h = 9; h < 22; h++) {
+    const start = h * 60;
+    const end = start + 60;
+    slots.push({ start, end });
+  }
 
-  // 6️⃣ Queue number
-  const lastQueue = await Booking.findOne({
-    vendor: owner.user,
+  // 5️⃣ Get busy bookings for the specialist today
+  const busyBookings = await Booking.find({
+    specialist,
     date: today,
-  }).sort({ queueNumber: -1 });
-  const queueNumber = lastQueue ? lastQueue.queueNumber! + 1 : 1;
+    isDeleted: false,
+  }).sort({ slotStart: 1 });
 
-  // 7️⃣ Create booking
+  // 6️⃣ Find next available slot
+  let chosenSlot = null;
+  for (const slot of slots) {
+    if (slot.end <= nowInMinutes) continue; // skip past slots
+
+    // check conflicts
+    const conflict = busyBookings.find(
+      (b) => b.slotStart < slot.end && b.slotEnd > slot.start,
+    );
+
+    if (!conflict && slot.end - slot.start >= serviceDuration) {
+      chosenSlot = slot;
+      break;
+    }
+  }
+
+  if (!chosenSlot) throw new AppError(400, 'No available slot today');
+
+  // 7️⃣ Convert slot minutes to time string
+  const formatTime = (minutes: number) => {
+    let h = Math.floor(minutes / 60);
+    let m = minutes % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 === 0 ? 12 : h % 12;
+    const mm = m < 10 ? `0${m}` : m;
+    return `${h}:${mm} ${ampm}`;
+  };
+
+  const timeString = `${formatTime(chosenSlot.start)} - ${formatTime(
+    chosenSlot.end,
+  )}`;
+
+  // 8️⃣ Queue number
+  const queueNumber =
+    (await Booking.countDocuments({
+      vendor: owner.user,
+      date: today,
+      isDeleted: false,
+    })) + 1;
+
+  // 9️⃣ Create booking
   const booking = await Booking.create({
     vendor: owner.user,
-    customer: null, // walk-in
+    customer: null,
     customerName,
     phone,
-    email: '',
+    email,
     service: getService._id,
     serviceType: SERVICE_MODEL_TYPE.OwnerService,
     bookingSource: 'walkin',
     queueNumber,
+    specialist,
     date: today,
-    time: now.toLocaleTimeString(),
+    slotStart: chosenSlot.start,
+    slotEnd: chosenSlot.end,
+    time: timeString,
     duration: getService.time,
-    slotStart,
-    slotEnd,
     totalPrice: getService.price,
-    dashboardStatus: lastBooking ? 'nextLine' : 'servicingNow',
     request: 'approved',
     isPaid: true,
     isDeleted: false,
