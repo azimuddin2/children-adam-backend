@@ -23,7 +23,7 @@ const createWalkInBooking = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Walk-in booking successfully',
+    message: `Walk-in booking confirmed for ${result.customerName} on ${result.date} at ${result.time}.`,
     data: result,
   });
 });

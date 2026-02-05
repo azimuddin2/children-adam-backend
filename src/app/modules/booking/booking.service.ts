@@ -9,7 +9,7 @@ import { Specialist } from '../Specialist/Specialist.model';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { bookingSearchableFields } from './booking.constant';
-import { getCurrentMinutes } from './booking.utils';
+import { createCustomerIntoDB, getCurrentMinutes } from './booking.utils';
 import { sendNotification } from '../notification/notification.utils';
 import dayjs from 'dayjs';
 import { OwnerRegistration } from '../ownerRegistration/ownerRegistration.model';
@@ -125,7 +125,7 @@ const createOnlineBookingIntoDB = async (payload: TBooking, files: any) => {
     if (slotStart < openingMinutes || slotEnd > closingMinutes) {
       throw new AppError(
         400,
-        `Bookings are available between ${todayOpening.openTime} and ${todayOpening.closeTime}`,
+        `The salon is open from ${todayOpening.openTime} to ${todayOpening.closeTime}. Please choose a booking time within these hours.`,
       );
     }
   }
@@ -229,145 +229,163 @@ const createOnlineBookingIntoDB = async (payload: TBooking, files: any) => {
 };
 
 const createWalkInBookingIntoDB = async (payload: TBooking) => {
-  const { qrToken, customerName, phone, email, service, specialist } = payload;
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  // 1️⃣ Validate Owner
-  const owner = await OwnerRegistration.findOne({ qrToken });
-  if (!owner) {
-    throw new AppError(404, 'Invalid QR code');
-  }
+  try {
+    const { qrToken, customerName, phone, email, service, specialist } =
+      payload;
 
-  // 2️⃣ Validate Service
-  const getService = await OwnerService.findById(service);
-  if (!getService) {
-    throw new AppError(404, 'Service not found');
-  }
+    // 🔹 0️⃣ Create or reuse user (session pass)
+    let user = await User.findOne({
+      $or: [{ email }, { phone }],
+      isDeleted: false,
+    }).session(session);
 
-  const serviceDuration = parseInt(getService.time, 10);
-
-  if (!specialist) throw new AppError(400, 'Specialist is required');
-
-  // 3️⃣ Validate Specialist
-  const dbSpecialist = await Specialist.findOne({
-    _id: specialist,
-    owner: owner.user,
-    isDeleted: false,
-  });
-  if (!dbSpecialist) {
-    throw new AppError(404, 'Specialist not found');
-  }
-
-  // 4️⃣ Prepare today's date & weekday
-  const today = new Date().toISOString().split('T')[0];
-  const todayDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-
-  // 5️⃣ Get today's opening hours
-  const todayOpening = owner.openingHours.find(
-    (h) => h.day === todayDay && h.enabled,
-  );
-  if (!todayOpening) {
-    throw new AppError(
-      400,
-      'The salon is closed today. Please visit us on our next business day.',
-    );
-  }
-
-  // Convert "09:00 AM" or "08:00 PM" to minutes
-  const parseTimeToMinutes = (time: string) => {
-    if (time.toLowerCase() === 'closed') return null;
-    const [t, mod] = time.split(' ');
-    let [h, m] = t.split(':').map(Number);
-    if (mod === 'PM' && h !== 12) h += 12;
-    if (mod === 'AM' && h === 12) h = 0;
-    return h * 60 + m;
-  };
-
-  const openingMinutes = parseTimeToMinutes(todayOpening.openTime)!;
-  const closingMinutes = parseTimeToMinutes(todayOpening.closeTime)!;
-
-  // 6️⃣ Current time in minutes
-  const now = new Date();
-  const nowInMinutes = now.getHours() * 60 + now.getMinutes();
-
-  // 7️⃣ Get busy bookings for today (both online and walk-in)
-  const busyBookings = await Booking.find({
-    specialist,
-    date: today,
-    isDeleted: false,
-  }).sort({ slotStart: 1 });
-
-  // 8️⃣ Generate available slots (FIXED)
-  const slots = [];
-
-  for (
-    let start = openingMinutes;
-    start + serviceDuration <= closingMinutes;
-    start += serviceDuration
-  ) {
-    // ❗ Skip slots that already started
-    if (start < nowInMinutes) continue;
-
-    const conflict = busyBookings.find(
-      (b) => b.slotStart < start + serviceDuration && b.slotEnd > start,
-    );
-
-    if (!conflict) {
-      slots.push({ start, end: start + serviceDuration });
+    if (!user) {
+      const userData = { fullName: customerName, phone, email };
+      user = await createCustomerIntoDB(userData as any, session);
     }
-  }
 
-  if (slots.length === 0) {
-    throw new AppError(
-      400,
-      'All slots for today are fully booked or past. Please try a later time or another day.',
+    // 1️⃣ Validate Owner
+    const owner = await OwnerRegistration.findOne({ qrToken }).session(session);
+    if (!owner) throw new AppError(404, 'Invalid QR code');
+
+    // 2️⃣ Validate Service
+    const getService = await OwnerService.findById(service).session(session);
+    if (!getService) throw new AppError(404, 'Service not found');
+
+    const serviceDuration = parseInt(getService.time, 10);
+    if (!specialist) throw new AppError(400, 'Specialist is required');
+
+    // 3️⃣ Validate Specialist
+    const dbSpecialist = await Specialist.findOne({
+      _id: specialist,
+      owner: owner.user,
+      isDeleted: false,
+    }).session(session);
+    if (!dbSpecialist) throw new AppError(404, 'Specialist not found');
+
+    // 4️⃣ Today's date & weekday
+    const today = new Date().toISOString().split('T')[0];
+    const todayDay = new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+    });
+
+    // 5️⃣ Opening hours
+    const todayOpening = owner.openingHours.find(
+      (h) => h.day === todayDay && h.enabled,
     );
-  }
+    if (!todayOpening) {
+      throw new AppError(
+        400,
+        'The salon is closed today. Please visit us on our next business day.',
+      );
+    }
 
-  // 9️⃣ Pick the first available slot
-  const chosenSlot = slots[0];
+    const parseTimeToMinutes = (time: string) => {
+      if (time.toLowerCase() === 'closed') return null;
+      const [t, mod] = time.split(' ');
+      let [h, m] = t.split(':').map(Number);
+      if (mod === 'PM' && h !== 12) h += 12;
+      if (mod === 'AM' && h === 12) h = 0;
+      return h * 60 + m;
+    };
 
-  // 🔟 Convert to human-readable time
-  const formatTime = (minutes: number) => {
-    let h = Math.floor(minutes / 60);
-    let m = minutes % 60;
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 === 0 ? 12 : h % 12;
-    const mm = m < 10 ? `0${m}` : m;
-    return `${h}:${mm} ${ampm}`;
-  };
+    const openingMinutes = parseTimeToMinutes(todayOpening.openTime)!;
+    const closingMinutes = parseTimeToMinutes(todayOpening.closeTime)!;
 
-  const timeString = `${formatTime(chosenSlot.start)} - ${formatTime(chosenSlot.end)}`;
+    // 6️⃣ Current time in minutes
+    const now = new Date();
+    const nowInMinutes = now.getHours() * 60 + now.getMinutes();
 
-  // 1️⃣1️⃣ Queue number
-  const queueNumber =
-    (await Booking.countDocuments({
-      vendor: owner.user,
+    // 7️⃣ Busy bookings
+    const busyBookings = await Booking.find({
+      specialist,
       date: today,
       isDeleted: false,
-    })) + 1;
+    })
+      .sort({ slotStart: 1 })
+      .session(session);
 
-  // 1️⃣2️⃣ Create booking
-  const booking = await Booking.create({
-    vendor: owner.user,
-    customer: null,
-    customerName,
-    phone,
-    email,
-    service: getService._id,
-    serviceType: SERVICE_MODEL_TYPE.OwnerService,
-    bookingSource: 'walkin',
-    queueNumber,
-    specialist,
-    date: today,
-    slotStart: chosenSlot.start,
-    slotEnd: chosenSlot.end,
-    time: timeString,
-    duration: getService.time,
-    totalPrice: getService.price,
-    request: 'approved',
-  });
+    // 8️⃣ Available slots
+    const slots = [];
+    for (
+      let start = openingMinutes;
+      start + serviceDuration <= closingMinutes;
+      start += serviceDuration
+    ) {
+      if (start < nowInMinutes) continue;
+      const conflict = busyBookings.find(
+        (b) => b.slotStart < start + serviceDuration && b.slotEnd > start,
+      );
+      if (!conflict) slots.push({ start, end: start + serviceDuration });
+    }
 
-  return booking;
+    if (slots.length === 0) {
+      throw new AppError(
+        400,
+        'All slots for today are fully booked or past. Please try a later time or another day.',
+      );
+    }
+
+    const chosenSlot = slots[0];
+
+    // 🔟 Human-readable time
+    const formatTime = (minutes: number) => {
+      let h = Math.floor(minutes / 60);
+      let m = minutes % 60;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 === 0 ? 12 : h % 12;
+      const mm = m < 10 ? `0${m}` : m;
+      return `${h}:${mm} ${ampm}`;
+    };
+    const timeString = `${formatTime(chosenSlot.start)} - ${formatTime(chosenSlot.end)}`;
+
+    // 1️⃣1️⃣ Queue number
+    const queueNumber =
+      (await Booking.countDocuments({
+        vendor: owner.user,
+        date: today,
+        isDeleted: false,
+      }).session(session)) + 1;
+
+    // 1️⃣2️⃣ Create booking
+    const booking = await Booking.create(
+      [
+        {
+          vendor: owner.user,
+          customer: user._id,
+          customerName,
+          phone,
+          email,
+          service: getService._id,
+          serviceType: SERVICE_MODEL_TYPE.OwnerService,
+          bookingSource: 'walkin',
+          queueNumber,
+          specialist,
+          date: today,
+          slotStart: chosenSlot.start,
+          slotEnd: chosenSlot.end,
+          time: timeString,
+          duration: getService.time,
+          totalPrice: getService.price,
+          request: 'approved',
+        },
+      ],
+      { session },
+    );
+
+    // ✅ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return booking[0];
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    throw err;
+  }
 };
 
 const getAllBookingsFromDB = async (query: Record<string, unknown>) => {
