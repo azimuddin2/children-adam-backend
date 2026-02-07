@@ -1,20 +1,11 @@
-import { TRole, TStatus } from './user.interface';
+import { TGender, TRole, TStatus } from './user.interface';
 
 export const USER_ROLE = {
-  customer: 'customer',
-  owner: 'owner',
-  freelancer: 'freelancer',
+  user: 'user',
   admin: 'admin',
-  'sub-admin': 'sub-admin',
 } as const;
 
-export const UserRole: TRole[] = [
-  'customer',
-  'owner',
-  'freelancer',
-  'admin',
-  'sub-admin',
-];
+export const UserRole: TRole[] = ['user', 'admin'];
 
 export enum Login_With {
   google = 'google',
@@ -23,12 +14,6 @@ export enum Login_With {
 }
 
 export const UserStatus: TStatus[] = ['ongoing', 'confirmed', 'blocked'];
+export const Gender: TGender[] = ['male', 'female', 'other'];
 
-export const userSearchableFields = [
-  'fullName',
-  'email',
-  'phone',
-  'streetAddress',
-  'city',
-  'state',
-];
+export const userSearchableFields = ['fullName', 'email', 'phone', 'address'];

@@ -8,7 +8,6 @@ import { AboutRoutes } from '../modules/about/about.route';
 import { CategoryRoutes } from '../modules/category/category.route';
 import { SubcategoryRoutes } from '../modules/subcategory/subcategory.route';
 import { SupportRoutes } from '../modules/support/support.route';
-import { BookingRoutes } from '../modules/booking/booking.route';
 import { PaymentRoutes } from '../modules/payment/payment.route';
 import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { chatRoutes } from '../modules/chat/chat.route';
@@ -55,10 +54,6 @@ const moduleRoutes = [
   {
     path: '/subcategories',
     route: SubcategoryRoutes,
-  },
-  {
-    path: '/bookings',
-    route: BookingRoutes,
   },
   {
     path: '/stripe',

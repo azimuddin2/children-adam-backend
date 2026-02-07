@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
-import { TBooking } from '../booking/booking.interface';
+// import { TBooking } from '../booking/booking.interface';
 
 export type TPaymentStatus = 'pending' | 'paid' | 'refunded' | 'cancelled';
 export type TPaymentType = 'deposit'; // future: 'full', 'withdrawal'
@@ -12,7 +12,7 @@ export type TPayment = {
   customerName: string;
   customerEmail: string;
 
-  booking: Types.ObjectId | TBooking;
+  // booking: Types.ObjectId | TBooking;
 
   type: TPaymentType; // deposit only (MVP)
 

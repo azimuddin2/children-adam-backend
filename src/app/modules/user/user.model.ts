@@ -2,7 +2,7 @@ import mongoose, { Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
 import config from '../../config';
 import { TUser, UserModel } from './user.interface';
-import { Login_With, UserRole, UserStatus } from './user.constant';
+import { Gender, Login_With, UserRole, UserStatus } from './user.constant';
 
 // ✅ Define the Mongoose schema
 const userSchema = new Schema<TUser, UserModel>(
@@ -13,17 +13,6 @@ const userSchema = new Schema<TUser, UserModel>(
       trim: true,
       minlength: [3, 'Full name must be at least 3 characters'],
       maxlength: [50, 'Full name can not exceed 50 characters'],
-    },
-    phone: {
-      type: String,
-      required: [true, 'Phone Number is required'],
-      trim: true,
-      validate: {
-        validator: function (v) {
-          return /^\+?[0-9]{10,15}$/.test(v);
-        },
-        message: (props) => `${props.value} is not a valid phone number`,
-      },
     },
     email: {
       type: String,
@@ -39,24 +28,20 @@ const userSchema = new Schema<TUser, UserModel>(
         message: 'Invalid email address',
       },
     },
-    streetAddress: {
+    phone: {
       type: String,
-      required: [true, 'Street address is required'],
+      required: [true, 'Phone Number is required'],
       trim: true,
+      validate: {
+        validator: function (v) {
+          return /^\+?[0-9]{10,15}$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid phone number`,
+      },
     },
-    zipCode: {
+    address: {
       type: String,
-      required: [true, 'Zip code is required'],
-      trim: true,
-    },
-    city: {
-      type: String,
-      required: [true, 'City is required'],
-      trim: true,
-    },
-    state: {
-      type: String,
-      required: [true, 'State is required'],
+      required: [true, 'Address is required'],
       trim: true,
     },
     password: {
@@ -74,13 +59,13 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     gender: {
       type: String,
-      enum: ['male', 'female', 'other'],
+      enum: {
+        values: Gender,
+        message: '{VALUE} is not valid',
+      },
       trim: true,
       required: false,
       default: null,
-    },
-    salonAffiliated: {
-      type: String,
     },
     role: {
       type: String,
@@ -88,7 +73,7 @@ const userSchema = new Schema<TUser, UserModel>(
         values: UserRole,
         message: '{VALUE} is not valid',
       },
-      default: 'customer',
+      default: 'user',
     },
     status: {
       type: String,
@@ -107,14 +92,9 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Boolean,
       default: false,
     },
-
     isVerified: {
       type: Boolean,
       default: false,
-    },
-    verificationMethod: {
-      type: String,
-      enum: ['email', 'phone'],
     },
 
     verification: {
@@ -142,14 +122,6 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Boolean,
       default: false,
     },
-    freelancerReg: {
-      type: Schema.Types.ObjectId,
-      ref: 'FreelancerRegistration',
-    },
-    ownerReg: {
-      type: Schema.Types.ObjectId,
-      ref: 'OwnerRegistration',
-    },
     fcmToken: {
       type: String,
       default: null,
@@ -158,40 +130,11 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Boolean,
       default: true,
     },
-    location: {
-      type: {
-        type: String,
-        enum: ['Point'],
-        default: 'Point',
-        required: false,
-      },
-      coordinates: {
-        type: [Number],
-        required: false,
-      },
-      streetAddress: {
-        type: String,
-        required: false,
-      },
-    },
     stripeCustomerId: {
       type: String,
       default: null,
     },
     stripeAccountId: {
-      type: String,
-      default: null,
-    },
-    isReferral: {
-      type: Boolean,
-      default: false,
-    },
-    referredBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-    },
-    referralCode: {
       type: String,
       default: null,
     },

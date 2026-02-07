@@ -22,11 +22,11 @@ const paymentSchema = new Schema<TPayment>(
       type: String,
       required: true,
     },
-    booking: {
-      type: Schema.Types.ObjectId,
-      ref: 'Booking',
-      required: true,
-    },
+    // booking: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: 'Booking',
+    //   required: true,
+    // },
     type: {
       type: String,
       enum: ['deposit'],

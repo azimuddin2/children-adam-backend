@@ -82,7 +82,7 @@ const getAllSubcategoryFromDB = async (query: Record<string, unknown>) => {
   }
 
   // Base query -> always exclude deleted packages service
-  let subcategoryQuery = Subcategory.find({ category, isDeleted: false });
+  const subcategoryQuery = Subcategory.find({ category, isDeleted: false });
 
   const queryBuilder = new QueryBuilder(subcategoryQuery, filters)
     .search(['name'])
