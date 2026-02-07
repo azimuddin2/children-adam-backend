@@ -24,29 +24,11 @@ const createUserValidationSchema = z.object({
       })
       .email('Invalid email address'),
 
-    streetAddress: z
+    address: z
       .string({
         required_error: 'Street address is required',
       })
       .min(3, 'Street address must be at least 3 characters'),
-
-    zipCode: z
-      .string({
-        required_error: 'Zip code is required',
-      })
-      .min(3, 'Zip code must be at least 3 characters'),
-
-    city: z
-      .string({
-        required_error: 'City is required',
-      })
-      .min(2, 'City must be at least 2 characters'),
-
-    state: z
-      .string({
-        required_error: 'State is required',
-      })
-      .min(2, 'State must be at least 2 characters'),
 
     password: z
       .string({
@@ -61,7 +43,7 @@ const createUserValidationSchema = z.object({
         'Password must contain at least one special character',
       ),
 
-    role: z.enum([...UserRole] as [string, ...string[]]).default('customer'),
+    role: z.enum([...UserRole] as [string, ...string[]]).default('user'),
 
     status: z.enum([...UserStatus] as [string, ...string[]]).default('ongoing'),
 

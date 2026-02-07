@@ -13,17 +13,15 @@ export type TUser = {
   email: string;
   phone: string;
   address: string;
+  image: string | null;
+  gender?: TGender;
 
   password: string;
   needsPasswordChange: boolean;
   passwordChangeAt?: Date;
 
-  gender?: TGender;
   role: TRole;
   status: TStatus;
-
-  image: string | null;
-  isDeleted: boolean;
 
   isVerified: boolean;
   verification: {
@@ -34,16 +32,11 @@ export type TUser = {
 
   loginWith: 'google' | 'apple' | 'credentials';
 
-  isRegistration: boolean;
-
   fcmToken?: string;
   notifications: boolean;
+  isDeleted: boolean;
 
-  // 🔹 Stripe (Customer)
   stripeCustomerId?: string;
-
-  // 🔹 Stripe (Vendor / Connect)
-  stripeAccountId?: string;
 };
 
 export interface UserModel extends Model<TUser> {

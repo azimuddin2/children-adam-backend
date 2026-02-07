@@ -117,11 +117,6 @@ const userSchema = new Schema<TUser, UserModel>(
       enum: Login_With,
       default: Login_With.credentials,
     },
-
-    isRegistration: {
-      type: Boolean,
-      default: false,
-    },
     fcmToken: {
       type: String,
       default: null,
@@ -131,10 +126,6 @@ const userSchema = new Schema<TUser, UserModel>(
       default: true,
     },
     stripeCustomerId: {
-      type: String,
-      default: null,
-    },
-    stripeAccountId: {
       type: String,
       default: null,
     },

@@ -10,11 +10,7 @@ import { SubcategoryRoutes } from '../modules/subcategory/subcategory.route';
 import { SupportRoutes } from '../modules/support/support.route';
 import { PaymentRoutes } from '../modules/payment/payment.route';
 import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
-import { chatRoutes } from '../modules/chat/chat.route';
-import { messagesRoutes } from '../modules/message/message.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
-import { MessageImageRoutes } from '../modules/messageImage/messageImage.route';
-import { StripeRoute } from '../modules/stripe/stripe.route';
 
 const router = Router();
 
@@ -56,28 +52,12 @@ const moduleRoutes = [
     route: SubcategoryRoutes,
   },
   {
-    path: '/stripe',
-    route: StripeRoute,
-  },
-  {
     path: '/payments',
     route: PaymentRoutes,
   },
   {
     path: '/dashboard',
     route: DashboardRoutes,
-  },
-  {
-    path: '/chats',
-    route: chatRoutes,
-  },
-  {
-    path: '/messages',
-    route: messagesRoutes,
-  },
-  {
-    path: '/message-images',
-    route: MessageImageRoutes,
   },
   {
     path: '/notifications',
