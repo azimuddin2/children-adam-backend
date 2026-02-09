@@ -22,8 +22,10 @@ app.use(
 // application routes
 app.use('/api/v1', router);
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Children Of Adam App Backend');
+app.get('/api/v1', (req: Request, res: Response) => {
+  res.json({
+    message: 'Children Of Adam App Backend Running',
+  });
 });
 
 const test = async (req: Request, res: Response) => {

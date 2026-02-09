@@ -2,59 +2,13 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { UserServices } from './user.service';
 
-// const signupCustomer = catchAsync(async (req, res) => {
-//   const result = await UserServices.signupCustomerIntoDB(req.body);
-
-//   sendResponse(res, {
-//     statusCode: 201,
-//     success: true,
-//     message: 'User registered successfully',
-//     data: result,
-//   });
-// });
-
-// const signupOwner = catchAsync(async (req, res) => {
-//   const result = await UserServices.signupOwnerIntoDB(req.body);
-
-//   sendResponse(res, {
-//     statusCode: 201,
-//     success: true,
-//     message: 'Salon owner registered successfully',
-//     data: result,
-//   });
-// });
-
-// const signupFreelancer = catchAsync(async (req, res) => {
-//   const result = await UserServices.signupFreelancerIntoDB(req.body);
-
-//   sendResponse(res, {
-//     statusCode: 201,
-//     success: true,
-//     message: 'freelancer account registered successfully',
-//     data: result,
-//   });
-// });
-
 const signupUser = catchAsync(async (req, res) => {
   const result = await UserServices.signupUserIntoDB(req.body);
 
-  console.log('Signup User Controller:', req.body);
-
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Signup successful! Please choose OTP verification method.',
-    data: result,
-  });
-});
-
-const createCustomerByAdmin = catchAsync(async (req, res) => {
-  const result = await UserServices.createCustomerByAdminIntoDB(req.body);
-
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: 'Customer account created successfully',
+    message: 'User signup successfully',
     data: result,
   });
 });
@@ -157,11 +111,7 @@ const updateNotificationSettings = catchAsync(async (req, res) => {
 });
 
 export const UserControllers = {
-  // signupCustomer,
-  // signupOwner,
-  // signupFreelancer,
   signupUser,
-  createCustomerByAdmin,
   getAllUsers,
   getUserProfile,
   updateUserProfile,

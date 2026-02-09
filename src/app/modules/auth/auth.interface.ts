@@ -9,7 +9,7 @@ export type TLoginUser = {
 
 export type TJwtPayload = {
   userId: ObjectId | string;
-  name?: string;
+  name: string;
   email: string;
   role: TRole;
   image?: string;

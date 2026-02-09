@@ -14,49 +14,20 @@ router.post(
   UserControllers.signupUser,
 );
 
-// router.post(
-//   '/customer/signup',
-//   validateRequest(UserValidations.createUserValidationSchema),
-//   UserControllers.signupCustomer,
-// );
-
-// router.post(
-//   '/owner/signup',
-//   validateRequest(UserValidations.createUserValidationSchema),
-//   UserControllers.signupOwner,
-// );
-
-// router.post(
-//   '/freelancer/signup',
-//   validateRequest(UserValidations.createUserValidationSchema),
-//   UserControllers.signupFreelancer,
-// );
-
-router.post(
-  '/admin/create-customer',
-  auth('admin'),
-  validateRequest(UserValidations.createCustomerByAdminSchema),
-  UserControllers.createCustomerByAdmin,
-);
-
 router.get('/', auth('admin'), UserControllers.getAllUsers);
 
-router.get(
-  '/profile',
-  auth('admin', 'customer', 'freelancer', 'owner'),
-  UserControllers.getUserProfile,
-);
+router.get('/profile', auth('user', 'admin'), UserControllers.getUserProfile);
 
 router.patch(
   '/profile',
-  auth('admin', 'customer', 'owner', 'freelancer'),
+  auth('admin', 'user'),
   validateRequest(UserValidations.updateUserValidationSchema),
   UserControllers.updateUserProfile,
 );
 
 router.patch(
   '/profile/picture',
-  auth('admin', 'customer', 'freelancer', 'owner'),
+  auth('admin', 'user'),
   upload.single('profile'),
   UserControllers.updateUserPicture,
 );
@@ -68,15 +39,11 @@ router.put(
   UserControllers.changeStatus,
 );
 
-router.delete(
-  '/',
-  auth('customer', 'freelancer', 'owner'),
-  UserControllers.deleteUserAccount,
-);
+router.delete('/', auth('admin', 'user'), UserControllers.deleteUserAccount);
 
 router.patch(
   '/update-notifications',
-  auth('admin', 'customer', 'freelancer', 'owner'),
+  auth('admin', 'user'),
   validateRequest(UserValidations.notificationSettingsValidationSchema),
   UserControllers.updateNotificationSettings,
 );

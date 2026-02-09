@@ -24,7 +24,7 @@ async function main() {
 main();
 
 process.on('unhandledRejection', (err) => {
-  console.log(chalk.red(`😈 unhandledRejection detected, shutting down...`, err));
+  console.log(chalk.red(`😈 unhandledRejection detected, shutting down...`));
   if (server) {
     server.close(() => {
       process.exit(1);

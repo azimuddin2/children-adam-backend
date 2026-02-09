@@ -4,7 +4,6 @@ import config from '../../config';
 import { TUser, UserModel } from './user.interface';
 import { Gender, Login_With, UserRole, UserStatus } from './user.constant';
 
-// ✅ Define the Mongoose schema
 const userSchema = new Schema<TUser, UserModel>(
   {
     fullName: {
@@ -16,6 +15,7 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     email: {
       type: String,
+      required: [true, 'Email is required'],
       trim: true,
       unique: true,
       sparse: true,
@@ -30,7 +30,7 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     phone: {
       type: String,
-      required: [true, 'Phone Number is required'],
+      required: false,
       trim: true,
       validate: {
         validator: function (v) {
@@ -38,11 +38,13 @@ const userSchema = new Schema<TUser, UserModel>(
         },
         message: (props) => `${props.value} is not a valid phone number`,
       },
+      default: undefined,
     },
     address: {
       type: String,
-      required: [true, 'Address is required'],
+      required: false,
       trim: true,
+      default: null,
     },
     password: {
       type: String,
@@ -96,7 +98,6 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Boolean,
       default: false,
     },
-
     verification: {
       otp: {
         type: mongoose.Schema.Types.Mixed,
@@ -149,13 +150,6 @@ userSchema.pre('save', async function (next) {
 // ✅ Clear sensitive data after saving
 userSchema.post('save', function (doc, next) {
   doc.password = '';
-  next();
-});
-
-userSchema.pre('validate', function (next) {
-  if (!this.email && !this.phone) {
-    next(new Error('Email or Phone is required'));
-  }
   next();
 });
 

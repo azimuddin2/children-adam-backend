@@ -1,22 +1,16 @@
 import { z } from 'zod';
-import { UserRole, UserStatus } from './user.constant';
+import { Gender, UserRole, UserStatus } from './user.constant';
 
-// ✅ Register (Create) User Validation Schema
+// ✅ SignUp (Create) User Validation Schema
 const createUserValidationSchema = z.object({
   body: z.object({
     fullName: z
       .string({
-        required_error: 'Full name is required',
+        required_error: 'Full Name is required',
         invalid_type_error: 'Full name must be a string',
       })
       .min(3, 'Full name must be at least 3 characters')
       .max(50, 'Full name cannot exceed 50 characters'),
-
-    phone: z
-      .string({
-        required_error: 'Phone number is required',
-      })
-      .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number'),
 
     email: z
       .string({
@@ -24,11 +18,10 @@ const createUserValidationSchema = z.object({
       })
       .email('Invalid email address'),
 
-    address: z
-      .string({
-        required_error: 'Street address is required',
-      })
-      .min(3, 'Street address must be at least 3 characters'),
+    phone: z
+      .string()
+      .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number')
+      .optional(),
 
     password: z
       .string({
@@ -43,11 +36,19 @@ const createUserValidationSchema = z.object({
         'Password must contain at least one special character',
       ),
 
+    address: z
+      .string({
+        required_error: 'address is required',
+      })
+      .min(3, 'Street address must be at least 3 characters')
+      .optional(),
+
+    gender: z.enum([...Gender] as [string, ...string[]]).optional(),
+    image: z.string().optional(),
+
     role: z.enum([...UserRole] as [string, ...string[]]).default('user'),
 
     status: z.enum([...UserStatus] as [string, ...string[]]).default('ongoing'),
-
-    image: z.string().optional(),
 
     isDeleted: z.boolean().optional().default(false),
 
@@ -81,15 +82,13 @@ const updateUserValidationSchema = z.object({
 
     email: z.string().email('Invalid email address').optional(),
 
-    streetAddress: z.string().optional(),
-    zipCode: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
+    address: z.string().optional(),
+    image: z.string().optional(),
+    gender: z.enum([...Gender] as [string, ...string[]]).optional(),
 
     role: z.enum([...UserRole] as [string, ...string[]]).optional(),
     status: z.enum([...UserStatus] as [string, ...string[]]).optional(),
 
-    image: z.string().optional(),
     isDeleted: z.boolean().optional(),
     isVerified: z.boolean().optional(),
 
@@ -105,30 +104,6 @@ const updateUserValidationSchema = z.object({
   }),
 });
 
-const createCustomerByAdminSchema = z.object({
-  body: z.object({
-    fullName: z
-      .string({
-        required_error: 'Full name is required',
-        invalid_type_error: 'Full name must be a string',
-      })
-      .min(3, 'Full name must be at least 3 characters')
-      .max(50, 'Full name cannot exceed 50 characters'),
-
-    phone: z
-      .string({
-        required_error: 'Phone number is required',
-      })
-      .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number'),
-
-    email: z
-      .string({
-        required_error: 'Email is required',
-      })
-      .email('Invalid email address'),
-  }),
-});
-
 // ✅ Change User Status Validation
 const changeStatusValidationSchema = z.object({
   body: z.object({
@@ -138,6 +113,7 @@ const changeStatusValidationSchema = z.object({
   }),
 });
 
+// ✅ Notification Validation
 const notificationSettingsValidationSchema = z.object({
   body: z.object({
     notifications: z.boolean({
@@ -150,7 +126,6 @@ const notificationSettingsValidationSchema = z.object({
 export const UserValidations = {
   createUserValidationSchema,
   updateUserValidationSchema,
-  createCustomerByAdminSchema,
   changeStatusValidationSchema,
   notificationSettingsValidationSchema,
 };
