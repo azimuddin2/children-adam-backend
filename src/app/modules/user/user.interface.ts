@@ -26,7 +26,7 @@ export type TUser = {
   isVerified: boolean;
   verification: {
     otp: string | number | null;
-    expiresAt: Date | null;
+    expiresAt: Date;
     status: boolean;
   };
 
