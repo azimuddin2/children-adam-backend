@@ -11,10 +11,6 @@ router.post(
   OtpControllers.handleVerifyOtp,
 );
 
-// router.post(
-//   '/resend-otp',
-//   validateRequest(OtpValidations.sendOtpValidationSchema),
-//   OtpControllers.handleRendOtp,
-// );
+router.post('/resend-otp', OtpControllers.handleResendOtp);
 
 export const OtpRoutes = router;

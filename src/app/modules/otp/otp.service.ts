@@ -9,6 +9,7 @@ import { Secret } from 'jsonwebtoken';
 import jwt from 'jsonwebtoken';
 import { generateOtp } from '../../utils/generateOtp';
 import { sendEmail } from '../../utils/sendEmail';
+import { createToken } from '../auth/auth.utils';
 
 const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   if (!token) {
@@ -58,7 +59,7 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
       },
     },
     { new: true },
-  );
+  ).select('_id fullName email role isVerified');
 
   // create token and sent to the client
   const jwtPayload: TJwtPayload = {
@@ -75,29 +76,50 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   return { user: updateUser, token: jwtToken };
 };
 
-const resendOtp = async (payload: TSendOtp) => {
-  const { userId } = payload;
-
-  const user = await User.findById(userId);
+const resendOtp = async (email: string) => {
+  const user = await User.findOne({ email });
   if (!user) {
     throw new AppError(404, 'This user is not found!');
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'TThis user account is deleted!');
+    throw new AppError(403, 'This user account is deleted!');
   }
 
   if (user?.status === 'blocked') {
     throw new AppError(403, 'This user is blocked!');
   }
 
-  if (user.isVerified === true) {
-    throw new AppError(400, 'Account already verified');
-  }
-
   // Generate new OTP
   const otp = generateOtp();
   const expiresAt = moment().add(5, 'minutes').toDate();
+
+  const updateOtp = await User.findByIdAndUpdate(user?._id, {
+    $set: {
+      verification: {
+        otp,
+        expiresAt,
+        status: false,
+      },
+    },
+  });
+
+  if (!updateOtp) {
+    throw new AppError(400, 'Failed to resend otp. Please try again later');
+  }
+
+  const jwtPayload: TJwtPayload = {
+    userId: user._id,
+    name: user?.fullName,
+    email: user?.email,
+    role: user?.role,
+  };
+
+  const token = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    '5m',
+  );
 
   await sendEmail(
     user.email,
@@ -117,7 +139,7 @@ const resendOtp = async (payload: TSendOtp) => {
               <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
                 <tr>
                   <td align="center" style="padding-bottom: 20px;">
-                    <h2 style="color: #4625A0; margin: 0;">Email Verification</h2>
+                    <h2 style="color: #EA6919; margin: 0;">Email Verification</h2>
                   </td>
                 </tr>
                 <tr>
@@ -128,7 +150,7 @@ const resendOtp = async (payload: TSendOtp) => {
                 </tr>
                 <tr>
                   <td align="center" style="padding: 20px 0;">
-                    <div style="display: inline-block; padding: 15px 30px; font-size: 24px; font-weight: bold; color: #ffffff; background-color: #4625A0; border-radius: 6px; letter-spacing: 2px;">
+                    <div style="display: inline-block; padding: 15px 30px; font-size: 24px; font-weight: bold; color: #ffffff; background-color: #EA6919; border-radius: 6px; letter-spacing: 2px;">
                       ${otp}
                     </div>
                   </td>
@@ -157,9 +179,10 @@ const resendOtp = async (payload: TSendOtp) => {
       `,
   );
 
-  return { message: `OTP resent via ${method}`, userId: user._id };
+  return { token };
 };
 
 export const OtpServices = {
   verifyOtp,
+  resendOtp,
 };
