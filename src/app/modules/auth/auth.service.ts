@@ -14,114 +14,41 @@ import bcrypt from 'bcrypt';
 import { generateOtp } from '../../utils/generateOtp';
 import moment from 'moment';
 import { sendEmail } from '../../utils/sendEmail';
-import { TFreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.interface';
-import { TOwnerRegistration } from '../ownerRegistration/ownerRegistration.interface';
-import { TUser } from '../user/user.interface';
 import { sendNotification } from '../notification/notification.utils';
 import httpStatus from 'http-status';
 import { Login_With, USER_ROLE } from '../user/user.constant';
 import admin from '../../utils/firebase';
 
 const loginUser = async (payload: TLoginUser) => {
-  // 1️⃣ Find user and populate profiles
-  const user = await User.findOne({ email: payload.email })
-    .populate('freelancerReg')
-    .populate('ownerReg');
+  const user = await User.findOne({ email: payload.email });
 
-  if (!user) throw new AppError(404, 'This user is not found!');
-  if (user.isDeleted) throw new AppError(403, 'This user account is deleted!');
-  if (user.status === 'blocked')
+  if (!user) {
+    throw new AppError(404, 'This user is not found!');
+  }
+
+  if (user?.isDeleted === true) {
+    throw new AppError(403, 'This user is deleted!');
+  }
+
+  if (user?.status === 'blocked') {
     throw new AppError(403, 'This user is blocked!');
+  }
 
-  // 2️⃣ Password check
+  // checking if the password is correct
   const isPasswordMatched = await User.isPasswordMatched(
-    payload.password,
-    user.password,
+    payload?.password,
+    user?.password,
   );
-  if (!isPasswordMatched) throw new AppError(403, 'Password does not match!');
-
-  // 3️⃣ Handle incomplete owner registration
-  if (user.role === 'owner' && !user.ownerReg) {
-    const jwtPayload: TJwtPayload = {
-      userId: user._id.toString(),
-      name: user.fullName,
-      email: user.email,
-      role: 'owner', // special limited token
-    };
-
-    const token = createToken(
-      jwtPayload,
-      config.jwt_access_secret as string,
-      config.jwt_access_expires_in as string,
-    );
-
-    return {
-      accessToken: token,
-      registrationRequired: true, // frontend can redirect
-    };
+  if (!isPasswordMatched) {
+    throw new AppError(403, 'Password do not matched!');
   }
 
-  // 4️⃣ Approval status check (freelancer/owner)
-  if (user.role === 'freelancer') {
-    const freelancer = user.freelancerReg as TFreelancerRegistration | any;
-
-    if (!freelancer)
-      throw new AppError(400, 'Your freelancer profile is incomplete.');
-    if (freelancer.approvalStatus === 'pending')
-      throw new AppError(403, 'Your freelancer account is under review.');
-    if (freelancer.approvalStatus === 'rejected')
-      throw new AppError(
-        403,
-        `Your freelancer account was rejected: "${freelancer.notes}"`,
-      );
-  }
-
-  if (user.role === 'owner') {
-    const owner = user.ownerReg as TOwnerRegistration | any;
-
-    if (!owner)
-      throw new AppError(400, 'Your salon owner profile is incomplete.');
-    if (owner.approvalStatus === 'pending')
-      throw new AppError(403, 'Your salon owner account is under review.');
-    if (owner.approvalStatus === 'rejected')
-      throw new AppError(
-        403,
-        `Your salon owner account was rejected: "${owner.notes}"`,
-      );
-  }
-
-  let updatedUser: TUser = user;
-
-  if (payload.fcmToken) {
-    updatedUser = (await User.findOneAndUpdate(
-      { email: payload.email },
-      { fcmToken: payload.fcmToken?.trim() }, // trim added
-      { new: true, runValidators: true },
-    )) as TUser;
-
-    console.log('FCM Token saved:', updatedUser?.fcmToken);
-  }
-
-  const tokenToUse = updatedUser?.fcmToken;
-
-  // Send notification only if token exists AND valid
-  if (tokenToUse && updatedUser?.notifications) {
-    sendNotification([tokenToUse], {
-      title: 'Login successfully',
-      message: 'New user login to your account',
-      receiver: updatedUser._id as any,
-      receiverEmail: updatedUser.email,
-      receiverRole: updatedUser.role,
-      sender: updatedUser._id as any,
-    });
-  }
-
-  // 5️⃣ Generate JWT tokens for approved accounts
+  // create token and sent to the client
   const jwtPayload: TJwtPayload = {
     userId: user._id.toString(),
-    name: user.fullName,
-    email: user.email,
-    role: user.role,
+    name: user?.fullName,
+    email: user?.email,
+    role: user?.role,
   };
 
   const accessToken = createToken(
@@ -129,13 +56,17 @@ const loginUser = async (payload: TLoginUser) => {
     config.jwt_access_secret as string,
     config.jwt_access_expires_in as string,
   );
+
   const refreshToken = createToken(
     jwtPayload,
     config.jwt_refresh_secret as string,
     config.jwt_refresh_expires_in as string,
   );
 
-  return { accessToken, refreshToken };
+  return {
+    accessToken,
+    refreshToken,
+  };
 };
 
 const refreshToken = async (token: string) => {
@@ -145,7 +76,7 @@ const refreshToken = async (token: string) => {
 
   const decoded = verifyToken(token, config.jwt_refresh_secret as string);
 
-  const { email, iat } = decoded;
+  const { email } = decoded;
 
   const user = await User.findOne({ email: email });
 
@@ -254,7 +185,7 @@ const forgotPassword = async (email: string) => {
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
-    '2m',
+    '3m',
   );
 
   const otp = generateOtp();
@@ -338,13 +269,11 @@ const resetPassword = async (token: string, payload: TResetPassword) => {
 
   const decoded = verifyToken(token, config.jwt_access_secret as string);
 
-  const { userId, email } = decoded;
+  const { userId } = decoded;
 
   const user = await User.findById({ _id: userId }).select(
     'verification isVerified',
   );
-
-  console.log(userId);
 
   if (!user) {
     throw new AppError(404, 'This user is not found!');
@@ -484,8 +413,9 @@ const googleLogin = async (payload: any) => {
       /* ================= CREATE JWT ================= */
       const jwtPayload: TJwtPayload = {
         userId: existingUser._id.toString(),
-        email: existingUser.email,
-        role: existingUser.role,
+        name: existingUser?.fullName,
+        email: existingUser?.email,
+        role: existingUser?.role,
       };
 
       const accessToken = createToken(
@@ -526,7 +456,7 @@ const googleLogin = async (payload: any) => {
       zipCode: 'N/A',
 
       password: 'GOOGLE_LOGIN_NO_PASSWORD',
-      role: USER_ROLE.customer,
+      role: USER_ROLE.user,
       loginWth: Login_With.google,
 
       isVerified: true,
@@ -539,8 +469,9 @@ const googleLogin = async (payload: any) => {
     /* ================= CREATE JWT FOR NEW USER ================= */
     const jwtPayload: TJwtPayload = {
       userId: newUser._id.toString(),
-      email: newUser.email,
-      role: newUser.role,
+      name: newUser?.fullName,
+      email: newUser?.email,
+      role: newUser?.role,
     };
 
     const accessToken = createToken(
@@ -623,8 +554,9 @@ const appleLogin = async (payload: any) => {
       /* ================= CREATE JWT ================= */
       const jwtPayload: TJwtPayload = {
         userId: existingUser._id.toString(),
-        email: existingUser.email,
-        role: existingUser.role,
+        name: existingUser?.fullName,
+        email: existingUser?.email,
+        role: existingUser?.role,
       };
 
       const accessToken = createToken(
@@ -660,7 +592,7 @@ const appleLogin = async (payload: any) => {
       zipCode: 'N/A',
 
       password: 'APPLE_LOGIN_NO_PASSWORD',
-      role: USER_ROLE.customer,
+      role: USER_ROLE.user,
       loginWth: Login_With.apple,
 
       isVerified: true,
@@ -673,8 +605,9 @@ const appleLogin = async (payload: any) => {
     /* ================= CREATE JWT FOR NEW USER ================= */
     const jwtPayload: TJwtPayload = {
       userId: newUser._id.toString(),
-      email: newUser.email,
-      role: newUser.role,
+      name: newUser?.fullName,
+      email: newUser?.email,
+      role: newUser?.role,
     };
 
     const accessToken = createToken(

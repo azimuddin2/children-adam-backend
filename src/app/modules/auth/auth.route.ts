@@ -20,7 +20,7 @@ router.post(
 
 router.post(
   '/change-password',
-  auth('admin', 'customer', 'freelancer', 'owner'),
+  auth('admin', 'user'),
   validateRequest(AuthValidations.changePasswordValidationSchema),
   AuthControllers.handleChangePassword,
 );
@@ -37,11 +37,7 @@ router.post(
   AuthControllers.handleResetPassword,
 );
 
-router.put(
-  '/logout',
-  auth('admin', 'customer', 'freelancer', 'owner'),
-  AuthControllers.logoutUser,
-);
+router.put('/logout', auth('admin', 'user'), AuthControllers.logoutUser);
 
 router.post('/google-login', AuthControllers.handleGoogleLogin);
 router.post('/apple-login', AuthControllers.handleAppleLogin);

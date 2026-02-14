@@ -5,8 +5,6 @@ import { User } from '../user/user.model';
 import { TJwtPayload } from '../auth/auth.interface';
 import { TVerifyOtp } from './otp.interface';
 import { verifyToken } from '../../utils/verifyToken';
-import { Secret } from 'jsonwebtoken';
-import jwt from 'jsonwebtoken';
 import { generateOtp } from '../../utils/generateOtp';
 import { sendEmail } from '../../utils/sendEmail';
 import { createToken } from '../auth/auth.utils';
@@ -21,7 +19,7 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   const { email } = decoded;
 
   const user = await User.findOne({ email: email }).select(
-    'verification isVerified',
+    'fullName email verification isVerified role',
   );
 
   if (!user) {
@@ -50,6 +48,7 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
     user?._id,
     {
       $set: {
+        status: 'confirmed',
         isVerified: user?.isVerified === false ? true : user?.isVerified,
         verification: {
           otp: 0,
@@ -59,19 +58,21 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
       },
     },
     { new: true },
-  ).select('_id fullName email role isVerified');
+  ).select('_id fullName email role isVerified status');
 
   // create token and sent to the client
   const jwtPayload: TJwtPayload = {
     userId: user._id,
     name: user.fullName,
-    email: user?.email,
-    role: user?.role,
+    email: user.email,
+    role: user.role,
   };
 
-  const jwtToken = jwt.sign(jwtPayload, config.jwt_access_secret as Secret, {
-    expiresIn: '7m',
-  });
+  const jwtToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    '5m',
+  );
 
   return { user: updateUser, token: jwtToken };
 };
@@ -110,9 +111,9 @@ const resendOtp = async (email: string) => {
 
   const jwtPayload: TJwtPayload = {
     userId: user._id,
-    name: user?.fullName,
-    email: user?.email,
-    role: user?.role,
+    name: user.fullName,
+    email: user.email,
+    role: user.role,
   };
 
   const token = createToken(

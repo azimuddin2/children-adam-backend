@@ -1,8 +1,9 @@
+import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
 
-const handleLoginUser = catchAsync(async (req, res) => {
+const handleLoginUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.loginUser(req.body);
   const { accessToken, refreshToken } = result;
 
@@ -14,7 +15,7 @@ const handleLoginUser = catchAsync(async (req, res) => {
   });
 });
 
-const handleRefreshToken = catchAsync(async (req, res) => {
+const handleRefreshToken = catchAsync(async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
   const result = await AuthServices.refreshToken(refreshToken);
 
@@ -26,7 +27,7 @@ const handleRefreshToken = catchAsync(async (req, res) => {
   });
 });
 
-const handleChangePassword = catchAsync(async (req, res) => {
+const handleChangePassword = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.changePassword(req.user, req.body);
 
   sendResponse(res, {
@@ -37,7 +38,7 @@ const handleChangePassword = catchAsync(async (req, res) => {
   });
 });
 
-const handleForgotPassword = catchAsync(async (req, res) => {
+const handleForgotPassword = catchAsync(async (req: Request, res: Response) => {
   const email = req.body.email;
   const result = await AuthServices.forgotPassword(email);
 
@@ -49,7 +50,7 @@ const handleForgotPassword = catchAsync(async (req, res) => {
   });
 });
 
-const handleResetPassword = catchAsync(async (req, res) => {
+const handleResetPassword = catchAsync(async (req: Request, res: Response) => {
   const token = req?.headers?.authorization as string;
   const result = await AuthServices.resetPassword(token, req.body);
 
@@ -61,7 +62,7 @@ const handleResetPassword = catchAsync(async (req, res) => {
   });
 });
 
-const logoutUser = catchAsync(async (req, res) => {
+const logoutUser = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.userId;
   const result = await AuthServices.logoutUser(userId);
 
@@ -73,7 +74,7 @@ const logoutUser = catchAsync(async (req, res) => {
   });
 });
 
-const handleGoogleLogin = catchAsync(async (req, res) => {
+const handleGoogleLogin = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.googleLogin(req.body);
 
   const { user, accessToken, refreshToken } = result;
@@ -86,7 +87,7 @@ const handleGoogleLogin = catchAsync(async (req, res) => {
   });
 });
 
-const handleAppleLogin = catchAsync(async (req, res) => {
+const handleAppleLogin = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.appleLogin(req.body);
 
   const { user, accessToken, refreshToken } = result;
