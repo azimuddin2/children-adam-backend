@@ -210,8 +210,7 @@ const getUserProfileFromDB = async (email: string) => {
 };
 
 const updateUserProfileIntoDB = async (email: string, payload: TUser) => {
-  // 🔍 Step 1: Check if user exists & get email
-  const existingUser = await User.findOne({ email }).select('');
+  const existingUser = await User.findOne({ email });
   if (!existingUser) {
     throw new AppError(404, 'User not found');
   }
@@ -227,7 +226,7 @@ const updateUserProfileIntoDB = async (email: string, payload: TUser) => {
   const updatedUser = await User.findOneAndUpdate({ email: email }, payload, {
     new: true,
     runValidators: true,
-  });
+  }).select('-password');
 
   if (!updatedUser) {
     throw new AppError(400, 'profile update failed');

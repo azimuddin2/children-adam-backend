@@ -82,25 +82,15 @@ const updateUserValidationSchema = z.object({
 
     email: z.string().email('Invalid email address').optional(),
 
-    address: z.string().optional(),
-    image: z.string().optional(),
-    gender: z.enum([...Gender] as [string, ...string[]]).optional(),
-
-    role: z.enum([...UserRole] as [string, ...string[]]).optional(),
-    status: z.enum([...UserStatus] as [string, ...string[]]).optional(),
-
-    isDeleted: z.boolean().optional(),
-    isVerified: z.boolean().optional(),
-
-    verification: z
-      .object({
-        otp: z.string().optional(),
-        expiresAt: z.date().optional(),
-        status: z.boolean().optional(),
+    address: z
+      .string({
+        required_error: 'address is required',
       })
+      .min(3, 'Street address must be at least 3 characters')
       .optional(),
 
-    stripeCustomerId: z.string().optional(),
+    image: z.string().optional(),
+    gender: z.enum([...Gender] as [string, ...string[]]).optional(),
   }),
 });
 

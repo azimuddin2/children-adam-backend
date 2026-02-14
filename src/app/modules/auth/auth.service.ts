@@ -220,7 +220,7 @@ const forgotPassword = async (email: string) => {
         <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; padding:40px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.05); max-width:600px; width:100%;">
           <tr>
             <td align="center" style="padding-bottom:20px;">
-              <h2 style="color:#4625A0; margin:0;">Reset Your Password</h2>
+              <h2 style="color:#EA6919; margin:0;">Reset Your Password</h2>
             </td>
           </tr>
           <tr>
@@ -230,7 +230,7 @@ const forgotPassword = async (email: string) => {
           </tr>
           <tr>
             <td align="center" style="padding:20px 0;">
-              <div style="display:inline-block; padding:15px 30px; font-size:24px; font-weight:bold; color:#ffffff; background-color:#4625A0; border-radius:6px; letter-spacing:2px;">
+              <div style="display:inline-block; padding:15px 30px; font-size:24px; font-weight:bold; color:#ffffff; background-color:#EA6919; border-radius:6px; letter-spacing:2px;">
                 ${otp}
               </div>
             </td>
