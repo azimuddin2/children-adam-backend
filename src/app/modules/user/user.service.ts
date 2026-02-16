@@ -16,7 +16,7 @@ const signupUserIntoDB = async (payload: TUser) => {
   // 1. Check if user already exists
   const existingUser = await User.findOne({ email: payload.email });
   if (existingUser) {
-    throw new AppError(409, `${payload.email} already exists.`);
+    throw new AppError(409, `${payload.email} already exists. Please Login`);
   }
 
   // 2. Generate OTP and expiration

@@ -3,7 +3,7 @@ import sendResponse from '../../utils/sendResponse';
 import { SupportServices } from './support.service';
 
 const createSupport = catchAsync(async (req, res) => {
-  const result = await SupportServices.createSupportIntoDB(req.body, req.file);
+  const result = await SupportServices.createSupportIntoDB(req.body);
 
   sendResponse(res, {
     statusCode: 201,

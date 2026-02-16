@@ -5,6 +5,5 @@ export type TSupport = {
   phone: string;
   message: string;
   messageReply?: string;
-  image: string | null;
   isDeleted: boolean;
 };

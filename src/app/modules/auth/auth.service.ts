@@ -18,6 +18,7 @@ import { sendNotification } from '../notification/notification.utils';
 import httpStatus from 'http-status';
 import { Login_With, USER_ROLE } from '../user/user.constant';
 import admin from '../../utils/firebase';
+import { OtpServices } from '../otp/otp.service';
 
 const loginUser = async (payload: TLoginUser) => {
   const user = await User.findOne({ email: payload.email });
@@ -63,10 +64,23 @@ const loginUser = async (payload: TLoginUser) => {
     config.jwt_refresh_expires_in as string,
   );
 
-  return {
-    accessToken,
-    refreshToken,
-  };
+  // 🔴 User not verified → resend OTP and inform user
+  if (!user.isVerified) {
+    await OtpServices.resendOtp(user.email);
+
+    return {
+      success: false,
+      message: `Hi ${user.fullName}, your account is not verified yet. We've just sent an OTP to your email ${user.email}. Please check your inbox and enter the code to verify your account.`,
+      requiresVerification: true,
+      accessToken,
+      refreshToken,
+    };
+  } else {
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
 };
 
 const refreshToken = async (token: string) => {
@@ -230,7 +244,7 @@ const forgotPassword = async (email: string) => {
           </tr>
           <tr>
             <td align="center" style="padding:20px 0;">
-              <div style="display:inline-block; padding:15px 30px; font-size:24px; font-weight:bold; color:#ffffff; background-color:#EA6919; border-radius:6px; letter-spacing:2px;">
+              <div style="display:inline-block; padding:15px 30px; font-size:24px; font-weight:bold; color:#ffffff; background-color:#; border-radius:6px; letter-spacing:2px;">
                 ${otp}
               </div>
             </td>

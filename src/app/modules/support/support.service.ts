@@ -1,22 +1,11 @@
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
-import { uploadToS3 } from '../../utils/awsS3FileUploader';
 import { sendEmail } from '../../utils/sendEmail';
 import { supportSearchableFields } from './support.constant';
 import { TSupport } from './support.interface';
 import { Support } from './support.modal';
 
-const createSupportIntoDB = async (payload: TSupport, file: any) => {
-  // 1. Upload image
-  if (file) {
-    const uploadedUrl = await uploadToS3({
-      file,
-      fileName: `images/support/${Math.floor(100000 + Math.random() * 900000)}`,
-    });
-    payload.image = uploadedUrl;
-  }
-
-  // 2. Create support message
+const createSupportIntoDB = async (payload: TSupport) => {
   const result = await Support.create(payload);
   if (!result) {
     throw new AppError(400, 'Failed to support message');

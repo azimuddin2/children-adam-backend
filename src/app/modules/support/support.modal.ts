@@ -15,9 +15,18 @@ const supportSchema = new Schema<TSupport>(
     },
     email: {
       type: String,
-      required: true,
-      lowercase: true,
+      required: [true, 'Email is required'],
       trim: true,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      validate: {
+        validator: function (v: string) {
+          if (!v) return true;
+          return /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(v);
+        },
+        message: 'Invalid email address',
+      },
     },
     phone: {
       type: String,
@@ -30,10 +39,6 @@ const supportSchema = new Schema<TSupport>(
     messageReply: {
       type: String,
       default: '',
-    },
-    image: {
-      type: String,
-      required: false,
     },
     isDeleted: {
       type: Boolean,

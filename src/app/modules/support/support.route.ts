@@ -3,17 +3,12 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import { SupportValidation } from './support.validation';
 import { SupportControllers } from './support.controller';
-import parseData from '../../middlewares/parseData';
-import multer, { memoryStorage } from 'multer';
 
 const router = express.Router();
-const upload = multer({ storage: memoryStorage() });
 
 router.post(
   '/',
-  auth('customer', 'freelancer', 'owner'),
-  upload.single('image'),
-  parseData(),
+  auth('user'),
   validateRequest(SupportValidation.createSupportValidationSchema),
   SupportControllers.createSupport,
 );

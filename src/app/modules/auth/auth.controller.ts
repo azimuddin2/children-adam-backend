@@ -7,12 +7,22 @@ const handleLoginUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.loginUser(req.body);
   const { accessToken, refreshToken } = result;
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'User is logged in successfully!',
-    data: { accessToken, refreshToken },
-  });
+  if (result.requiresVerification) {
+    // 🔹 Inform user OTP sent, not an error
+    return sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: result.message,
+      data: { requiresVerification: true, accessToken, refreshToken },
+    });
+  } else {
+    return sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'User is logged in successfully!',
+      data: { accessToken, refreshToken },
+    });
+  }
 });
 
 const handleRefreshToken = catchAsync(async (req: Request, res: Response) => {
