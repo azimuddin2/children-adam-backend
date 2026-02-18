@@ -5,7 +5,7 @@ import { AuthServices } from './auth.service';
 
 const handleLoginUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.loginUser(req.body);
-  const { accessToken, refreshToken } = result;
+  const { accessToken, refreshToken, isVerified } = result;
 
   if (result.requiresVerification) {
     // 🔹 Inform user OTP sent, not an error
@@ -13,7 +13,12 @@ const handleLoginUser = catchAsync(async (req: Request, res: Response) => {
       statusCode: 200,
       success: true,
       message: result.message,
-      data: { requiresVerification: true, accessToken, refreshToken },
+      data: {
+        requiresVerification: true,
+        isVerified,
+        accessToken,
+        refreshToken,
+      },
     });
   } else {
     return sendResponse(res, {

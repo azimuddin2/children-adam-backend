@@ -72,6 +72,7 @@ const loginUser = async (payload: TLoginUser) => {
       success: false,
       message: `Hi ${user.fullName}, your account is not verified yet. We've just sent an OTP to your email ${user.email}. Please check your inbox and enter the code to verify your account.`,
       requiresVerification: true,
+      isVerified: user.isVerified,
       accessToken,
       refreshToken,
     };
