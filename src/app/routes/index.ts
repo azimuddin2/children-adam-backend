@@ -12,6 +12,7 @@ import { PaymentRoutes } from '../modules/payment/payment.route';
 import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
 import { NewsRoutes } from '../modules/news/news.route';
+import { PollRoutes } from '../modules/poll/poll.route';
 
 const router = Router();
 
@@ -47,6 +48,10 @@ const moduleRoutes = [
   {
     path: '/news',
     route: NewsRoutes,
+  },
+  {
+    path: '/poll',
+    route: PollRoutes,
   },
 
   // TODO:

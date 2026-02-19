@@ -11,15 +11,17 @@ const PollQuestionSchema = z.object({
 });
 
 const createPollValidationSchema = z.object({
-  title: z.string({ required_error: 'Poll title is required' }),
-  startDate: z.string({ required_error: 'Start date is required' }),
-  endDate: z.string({ required_error: 'End date is required' }),
-  status: z.enum(PollStatus as [string, ...string[]]).default('active'),
-  questions: z
-    .array(PollQuestionSchema)
-    .min(1, 'At least one question is required'),
-  responses: z.number().nonnegative().optional(),
-  isDeleted: z.boolean().optional(),
+  body: z.object({
+    title: z.string({ required_error: 'Poll title is required' }),
+    startDate: z.string({ required_error: 'Start date is required' }),
+    endDate: z.string({ required_error: 'End date is required' }),
+    status: z.enum(PollStatus as [string, ...string[]]).default('active'),
+    questions: z
+      .array(PollQuestionSchema)
+      .min(1, 'At least one question is required'),
+    responses: z.number().nonnegative().optional(),
+    isDeleted: z.boolean().optional(),
+  }),
 });
 
 export const PollValidations = {

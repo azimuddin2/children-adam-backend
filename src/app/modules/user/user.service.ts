@@ -114,61 +114,13 @@ const signupUserIntoDB = async (payload: TUser) => {
 };
 
 const getAllUsersFromDB = async (query: Record<string, unknown>) => {
-  const { role, ...otherQuery } = query;
-
-  // Role required
-  if (!role) {
-    throw new AppError(400, 'Role is required');
-  }
-
-  const validRoles = ['customer', 'owner', 'freelancer'];
-  if (!validRoles.includes(role as string)) {
-    throw new AppError(400, 'Invalid role');
-  }
-
-  // Base query
-  const baseQuery: any = {
-    ...otherQuery,
+  const baseQuery = {
+    ...query,
     isDeleted: false,
-    role,
+    role: { $nin: ['admin'] }, // ✅ exclude admins
   };
 
-  let mongooseQuery = User.find();
-
-  // ===== Owner with ONLY approved registration =====
-  if (role === 'owner') {
-    mongooseQuery = mongooseQuery.populate({
-      path: 'ownerReg',
-      match: { approvalStatus: 'approved' }, // ✅ Only approved
-      populate: {
-        path: 'reviews',
-        model: 'Review',
-        populate: {
-          path: 'user',
-          select: 'fullName image',
-        },
-      },
-    });
-  }
-
-  // ===== Freelancer with ONLY approved registration =====
-  if (role === 'freelancer') {
-    mongooseQuery = mongooseQuery.populate({
-      path: 'freelancerReg',
-      match: { approvalStatus: 'approved' }, // ✅ Only approved
-      populate: {
-        path: 'reviews',
-        model: 'Review',
-        populate: {
-          path: 'user',
-          select: 'fullName image',
-        },
-      },
-    });
-  }
-
-  // Query builder (pagination, sort, search, filter)
-  const queryBuilder = new QueryBuilder(mongooseQuery, baseQuery)
+  const queryBuilder = new QueryBuilder(User.find(), baseQuery)
     .search(userSearchableFields)
     .filter()
     .sort()
@@ -176,17 +128,7 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
     .fields();
 
   const meta = await queryBuilder.countTotal();
-
-  let result = await queryBuilder.modelQuery;
-
-  // Remove users whose reg is NOT approved (null after match)
-  if (role === 'owner') {
-    result = result.filter((user: any) => user.ownerReg);
-  }
-
-  if (role === 'freelancer') {
-    result = result.filter((user: any) => user.freelancerReg);
-  }
+  const result = await queryBuilder.modelQuery;
 
   return { meta, result };
 };
