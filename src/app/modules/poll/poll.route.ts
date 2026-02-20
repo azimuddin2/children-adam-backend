@@ -13,6 +13,12 @@ router.post(
   PollControllers.createPoll,
 );
 
+router.get('/', auth('admin', 'user'), PollControllers.getAllPoll);
+
+router.get('/:id', auth('admin', 'user'), PollControllers.getPollById);
+
 router.patch('/vote', auth('user'), PollControllers.votePoll);
+
+router.delete('/:id', auth('admin'), PollControllers.deletePoll);
 
 export const PollRoutes = router;

@@ -19,7 +19,7 @@ const PollQuestionSchema = new Schema<TPollQuestion>({
     required: true,
   },
   options: [PollOptionSchema],
-  questionVotesCount: {
+  totalVotesCount: {
     type: Number,
     default: 0,
   },

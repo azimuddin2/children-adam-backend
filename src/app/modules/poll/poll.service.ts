@@ -1,3 +1,4 @@
+import { FilterQuery } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { TPoll, TVotePayload } from './poll.interface';
 import { Poll } from './poll.model';
@@ -31,6 +32,63 @@ const createPollIntoDB = async (payload: TPoll) => {
 
   const result = await Poll.create(payload);
   return result;
+};
+
+const getAllPollFromDB = async (query: Record<string, unknown>) => {
+  const { status } = query;
+  const filter: FilterQuery<TPoll> = {};
+  filter.isDeleted = false;
+
+  if (status) {
+    filter.status = status;
+  } else {
+    filter.status = { $in: ['active', 'closed'] };
+  }
+
+  const result = await Poll.find(filter).sort({ createdAt: -1 });
+  const totalDoc = await Poll.countDocuments(filter);
+
+  return {
+    totalDoc,
+    data: result,
+  };
+};
+
+const getPollByIdFromDB = async (id: string) => {
+  const result = await Poll.findById(id).lean();
+
+  if (!result) {
+    throw new AppError(404, 'This poll not found');
+  }
+
+  if (result.isDeleted) {
+    throw new AppError(400, 'This poll has been deleted');
+  }
+
+  const questionsWithPercentage = result.questions.map((question) => {
+    const totalVotes = question.options.reduce(
+      (sum, opt) => sum + opt.voteCount,
+      0,
+    );
+
+    const optionsWithPercentage = question.options.map((option) => ({
+      ...option,
+      percentage:
+        totalVotes > 0
+          ? parseFloat(((option.voteCount / totalVotes) * 100).toFixed(2))
+          : 0,
+    }));
+
+    return {
+      ...question,
+      options: optionsWithPercentage,
+    };
+  });
+
+  return {
+    ...result,
+    questions: questionsWithPercentage,
+  };
 };
 
 const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
@@ -77,7 +135,7 @@ const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
     if (isFirstVote) {
       // First vote → increment vote count
       newOption.voteCount += 1;
-      question.questionVotesCount += 1;
+      question.totalVotesCount += 1;
     } else {
       // User changing vote per question
       // Find previously voted option by comparing with current vote
@@ -102,7 +160,34 @@ const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
   return { message: 'Vote submitted successfully' };
 };
 
+const deletePollFromDB = async (id: string) => {
+  const isPollExists = await Poll.findById(id);
+
+  if (!isPollExists) {
+    throw new AppError(404, 'Poll not found');
+  }
+
+  if (isPollExists.isDeleted) {
+    throw new AppError(400, 'Poll is already deleted');
+  }
+
+  const result = await Poll.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true },
+  );
+
+  if (!result) {
+    throw new AppError(400, 'Failed to delete poll');
+  }
+
+  return result;
+};
+
 export const PollServices = {
   createPollIntoDB,
+  getAllPollFromDB,
+  getPollByIdFromDB,
   votePollIntoDB,
+  deletePollFromDB,
 };

@@ -12,7 +12,7 @@ export type TPollQuestion = {
   _id: string | ObjectId;
   questionText: string;
   options: TPollOption[];
-  questionVotesCount: number;
+  totalVotesCount: number;
 };
 
 export type TPoll = {
