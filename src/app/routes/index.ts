@@ -50,7 +50,7 @@ const moduleRoutes = [
     route: NewsRoutes,
   },
   {
-    path: '/poll',
+    path: '/polls',
     route: PollRoutes,
   },
 

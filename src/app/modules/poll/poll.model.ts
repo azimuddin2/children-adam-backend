@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose';
+import mongoose, { model, Schema } from 'mongoose';
 import { TPoll, TPollOption, TPollQuestion } from './poll.interface';
 import { PollStatus } from './poll.constant';
 
@@ -52,6 +52,15 @@ const PollSchema = new Schema<TPoll>(
       type: Number,
       default: 0,
     },
+
+    // Track users who voted in this poll
+    votedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+
     isDeleted: {
       type: Boolean,
       default: false,

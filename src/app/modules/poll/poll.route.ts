@@ -13,4 +13,6 @@ router.post(
   PollControllers.createPoll,
 );
 
+router.patch('/vote', auth('user'), PollControllers.votePoll);
+
 export const PollRoutes = router;

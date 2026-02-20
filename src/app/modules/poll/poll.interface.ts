@@ -25,5 +25,17 @@ export type TPoll = {
   questions: TPollQuestion[];
   responses: number;
 
+  votedUsers: string[];
+
   isDeleted: boolean;
+};
+
+type TAnswer = {
+  questionId: string;
+  optionId: string;
+};
+
+export type TVotePayload = {
+  pollId: string;
+  answers: TAnswer[];
 };

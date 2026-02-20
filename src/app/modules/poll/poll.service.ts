@@ -1,5 +1,5 @@
 import AppError from '../../errors/AppError';
-import { TPoll } from './poll.interface';
+import { TPoll, TVotePayload } from './poll.interface';
 import { Poll } from './poll.model';
 
 const createPollIntoDB = async (payload: TPoll) => {
@@ -12,79 +12,97 @@ const createPollIntoDB = async (payload: TPoll) => {
     throw new AppError(400, 'This poll already exists');
   }
 
+  if (payload.startDate >= payload.endDate) {
+    throw new AppError(400, 'Poll startDate must be before endDate');
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const endDate = new Date(payload.endDate);
+  endDate.setHours(0, 0, 0, 0);
+
+  if (endDate < today) {
+    throw new AppError(
+      400,
+      'Cannot create poll! End date is already in the past.',
+    );
+  }
+
   const result = await Poll.create(payload);
   return result;
 };
 
-interface Answer {
-  questionId: string;
-  optionId: string;
-}
-
-interface VotePayload {
-  pollId: string;
-  answers: Answer[];
-}
-
-const votePollIntoDB = async (payload: VotePayload) => {
+const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
   const { pollId, answers } = payload;
 
-  // ১️⃣ Find poll
   const poll = await Poll.findById(pollId);
-  if (!poll) throw new Error('Poll not found');
-
-  const now = new Date();
-
-  // ২️⃣ Check start date
-  if (now < poll.startDate) {
-    throw new Error('Poll has not started yet');
+  if (!poll) {
+    throw new AppError(404, 'Poll not found');
   }
 
-  // ৩️⃣ Lazy close if end date passed
+  const now = new Date();
+  if (now < poll.startDate) {
+    throw new AppError(400, 'Poll has not started yet');
+  }
+
+  // Lazy close poll if endDate passed
   if (now > poll.endDate) {
     if (poll.status !== 'closed') {
       poll.status = 'closed';
       await poll.save();
     }
-    throw new Error('Poll is closed');
+    throw new AppError(400, 'Poll is closed');
   }
 
-  // ৪️⃣ Validate all answers first
-  for (const answer of answers) {
-    const question = poll.questions.id(answer.questionId);
-    if (!question) {
-      throw new Error(`Question ${answer.questionId} not found`);
-    }
+  // ✅ Check if user voted in this poll already
+  const isFirstVote = !poll.votedUsers.includes(userId);
 
-    const option = question.options.id(answer.optionId);
-    if (!option) {
-      throw new Error(`Option ${answer.optionId} not found`);
-    }
-  }
-
-  // ৫️⃣ All valid → now update
-  for (const answer of answers) {
-    await Poll.updateOne(
-      { _id: pollId },
-      {
-        $inc: {
-          'questions.$[q].options.$[o].voteCount': 1,
-          'questions.$[q].questionVotesCount': 1,
-          responses: 1,
-        },
-      },
-      {
-        arrayFilters: [
-          { 'q._id': answer.questionId },
-          { 'o._id': answer.optionId },
-        ],
-      },
+  // Loop through each answer
+  answers.forEach((answer) => {
+    const question = poll.questions.find(
+      (q) => q._id.toString() === answer.questionId,
     );
+    if (!question) {
+      throw new AppError(404, `Question not found: ${answer.questionId}`);
+    }
+
+    const newOption = question.options.find(
+      (o) => o._id.toString() === answer.optionId,
+    );
+    if (!newOption) {
+      throw new AppError(404, `Option not found: ${answer.optionId}`);
+    }
+
+    if (isFirstVote) {
+      // First vote → increment vote count
+      newOption.voteCount += 1;
+      question.questionVotesCount += 1;
+    } else {
+      // User changing vote per question
+      // Find previously voted option by comparing with current vote
+      const prevOption = question.options.find(
+        (o) => o._id.toString() !== answer.optionId && o.voteCount > 0,
+      );
+      if (prevOption) {
+        prevOption.voteCount -= 1;
+        newOption.voteCount += 1;
+      }
+    }
+  });
+
+  // Only first-time poll voter → increase responses + record user
+  if (isFirstVote) {
+    poll.responses += 1;
+    poll.votedUsers.push(userId);
   }
+
+  await poll.save();
 
   return { message: 'Vote submitted successfully' };
 };
 
 export const PollServices = {
   createPollIntoDB,
+  votePollIntoDB,
 };

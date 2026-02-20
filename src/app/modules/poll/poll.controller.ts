@@ -14,6 +14,19 @@ const createPoll = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const votePoll = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.userId;
+  const result = await PollServices.votePollIntoDB(req.body, userId);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: result.message,
+    data: null,
+  });
+});
+
 export const PollControllers = {
   createPoll,
+  votePoll,
 };
