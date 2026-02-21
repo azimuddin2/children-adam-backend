@@ -1,6 +1,6 @@
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { SubcategoryService } from './subcategory.service';
+import { SubcategoryService } from './donationsSubcategory.service';
 
 const createSubcategory = catchAsync(async (req, res) => {
   const result = await SubcategoryService.createSubcategoryIntoDB(

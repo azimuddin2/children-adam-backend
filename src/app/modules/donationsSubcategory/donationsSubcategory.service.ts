@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import slugify from 'slugify';
-import { Subcategory } from './subcategory.model';
-import { Category } from '../category/category.model';
-import { TSubcategory } from './subcategory.interface';
+import { Subcategory } from './donationsSubcategory.model';
+import { Category } from '../donationsCategory/donationsCategory.model';
+import { TSubcategory } from './donationsSubcategory.interface';
 import AppError from '../../errors/AppError';
 import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
 import QueryBuilder from '../../builder/QueryBuilder';

@@ -1,7 +1,7 @@
 import mongoose, { model, Schema } from 'mongoose';
-import { TCategory } from './category.interface';
+import { TDonationsCategory } from './donationsCategory.interface';
 
-const CategorySchema = new Schema<TCategory>(
+const DonationsCategorySchema = new Schema<TDonationsCategory>(
   {
     name: {
       type: String,
@@ -13,15 +13,21 @@ const CategorySchema = new Schema<TCategory>(
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
     },
     image: {
       type: String,
       required: true,
     },
-    subcategories: [
+    donationsSubcategory: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subcategory', // Reference to Subcategory Model
+        ref: 'DonationsSubcategory', // Reference to Subcategory Model
       },
     ],
     isDeleted: {
@@ -32,4 +38,7 @@ const CategorySchema = new Schema<TCategory>(
   { timestamps: true },
 );
 
-export const Category = model<TCategory>('Category', CategorySchema);
+export const DonationsCategory = model<TDonationsCategory>(
+  'DonationsCategory',
+  DonationsCategorySchema,
+);

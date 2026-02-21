@@ -1,16 +1,16 @@
 import mongoose, { model, Schema } from 'mongoose';
-import { TSubcategory } from './subcategory.interface';
+import { TDonationsSubcategory } from './donationsSubcategory.interface';
 
-const SubcategorySchema = new Schema<TSubcategory>(
+const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
   {
     name: {
       type: String,
       required: true,
       trim: true,
     },
-    category: {
+    donationsCategory: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
+      ref: 'DonationsCategory',
     },
     slug: {
       type: String,
@@ -30,7 +30,7 @@ const SubcategorySchema = new Schema<TSubcategory>(
   { timestamps: true },
 );
 
-export const Subcategory = model<TSubcategory>(
-  'Subcategory',
-  SubcategorySchema,
+export const DonationsSubcategory = model<TDonationsSubcategory>(
+  'DonationsSubcategory',
+  DonationsSubcategorySchema,
 );

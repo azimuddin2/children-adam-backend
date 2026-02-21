@@ -1,7 +1,7 @@
 {
   "include": [
     "src"
-  ], // which files to compile
+, "src/app/modules/donationsSubcategory/donationsSubcategory.interface.ts"  ], // which files to compile
   "exclude": [
     "node_modules"
   ], // which files to skip
