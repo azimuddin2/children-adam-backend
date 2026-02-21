@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose';
+import mongoose, { ObjectId } from 'mongoose';
 
 export type TPollStatus = 'active' | 'closed';
 
@@ -6,6 +6,7 @@ export type TPollOption = {
   _id: ObjectId;
   optionText: string;
   voteCount: number;
+  selectedBy: mongoose.Types.ObjectId[];
 };
 
 export type TPollQuestion = {
@@ -25,7 +26,7 @@ export type TPoll = {
   questions: TPollQuestion[];
   responses: number;
 
-  votedUsers: string[];
+  votedUsers: mongoose.Types.ObjectId[];
 
   isDeleted: boolean;
 };

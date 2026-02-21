@@ -3,7 +3,7 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
-import { SubcategoryValidation } from './donationsSubcategory.validation';
+import { SubcategoryValidation } from './subcategory.validation';
 import { SubcategoryController } from './donationsSubcategory.controller';
 
 const router = express.Router();

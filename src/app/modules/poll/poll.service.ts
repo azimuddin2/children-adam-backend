@@ -1,4 +1,4 @@
-import { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { TPoll, TVotePayload } from './poll.interface';
 import { Poll } from './poll.model';
@@ -104,7 +104,6 @@ const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
     throw new AppError(400, 'Poll has not started yet');
   }
 
-  // Lazy close poll if endDate passed
   if (now > poll.endDate) {
     if (poll.status !== 'closed') {
       poll.status = 'closed';
@@ -113,10 +112,12 @@ const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
     throw new AppError(400, 'Poll is closed');
   }
 
-  // ✅ Check if user voted in this poll already
-  const isFirstVote = !poll.votedUsers.includes(userId);
+  const userObjectId = new mongoose.Types.ObjectId(userId);
 
-  // Loop through each answer
+  const isFirstVote = !poll.votedUsers
+    .map((id) => id.toString())
+    .includes(userId);
+
   answers.forEach((answer) => {
     const question = poll.questions.find(
       (q) => q._id.toString() === answer.questionId,
@@ -133,26 +134,37 @@ const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
     }
 
     if (isFirstVote) {
-      // First vote → increment vote count
+      (newOption.selectedBy as mongoose.Types.ObjectId[]).push(userObjectId); // ✅
       newOption.voteCount += 1;
       question.totalVotesCount += 1;
     } else {
-      // User changing vote per question
-      // Find previously voted option by comparing with current vote
-      const prevOption = question.options.find(
-        (o) => o._id.toString() !== answer.optionId && o.voteCount > 0,
+      let prevOption = question.options.find(
+        (o) =>
+          o._id.toString() !== answer.optionId &&
+          o.selectedBy.map((id) => id.toString()).includes(userId),
       );
+
+      if (!prevOption) {
+        prevOption = question.options.find(
+          (o) => o._id.toString() !== answer.optionId && o.voteCount > 0,
+        );
+      }
+
       if (prevOption) {
+        prevOption.selectedBy = prevOption.selectedBy.filter(
+          (id) => id.toString() !== userId,
+        );
         prevOption.voteCount -= 1;
+
+        (newOption.selectedBy as mongoose.Types.ObjectId[]).push(userObjectId);
         newOption.voteCount += 1;
       }
     }
   });
 
-  // Only first-time poll voter → increase responses + record user
   if (isFirstVote) {
     poll.responses += 1;
-    poll.votedUsers.push(userId);
+    (poll.votedUsers as mongoose.Types.ObjectId[]).push(userObjectId);
   }
 
   await poll.save();

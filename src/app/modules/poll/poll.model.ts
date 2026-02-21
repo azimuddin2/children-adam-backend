@@ -11,6 +11,12 @@ const PollOptionSchema = new Schema<TPollOption>({
     type: Number,
     default: 0,
   },
+  selectedBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
 });
 
 const PollQuestionSchema = new Schema<TPollQuestion>({
