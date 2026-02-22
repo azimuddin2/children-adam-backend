@@ -6,6 +6,7 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { TDonationsSubcategory } from './donationsSubcategory.interface';
 import { DonationsSubcategory } from './donationsSubcategory.model';
 import { DonationsCategory } from '../donationsCategory/donationsCategory.model';
+import { donationsSubcategorySearchableFields } from './donationsSubcategory.constant';
 
 const createDonationsSubcategoryIntoDB = async (
   payload: TDonationsSubcategory,
@@ -54,7 +55,7 @@ const createDonationsSubcategoryIntoDB = async (
     // 5️⃣ Push subcategory ID to Category
     const updatedCategory = await DonationsCategory.findByIdAndUpdate(
       donationsCategory,
-      { $push: { subcategories: created[0]._id } },
+      { $push: { donationsSubcategory: created[0]._id } },
       { new: true, session },
     );
 
@@ -77,118 +78,120 @@ const createDonationsSubcategoryIntoDB = async (
   }
 };
 
-// const getAllSubcategoryFromDB = async (query: Record<string, unknown>) => {
-//   const { category, ...filters } = query;
+const getAllDonationsSubcategoryFromDB = async (
+  query: Record<string, unknown>,
+) => {
+  const donationsSubcategoryQuery = new QueryBuilder(
+    DonationsSubcategory.find({ isDeleted: false }).populate(
+      'donationsCategory',
+    ),
+    query,
+  )
+    .search(donationsSubcategorySearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
-//   if (!category || !mongoose.Types.ObjectId.isValid(category as string)) {
-//     throw new AppError(400, 'Invalid Category ID');
-//   }
+  const meta = await donationsSubcategoryQuery.countTotal();
+  const result = await donationsSubcategoryQuery.modelQuery;
 
-//   // Base query -> always exclude deleted packages service
-//   const subcategoryQuery = Subcategory.find({ category, isDeleted: false });
+  return { meta, result };
+};
 
-//   const queryBuilder = new QueryBuilder(subcategoryQuery, filters)
-//     .search(['name'])
-//     .filter()
-//     .sort()
-//     .paginate()
-//     .fields();
+const getDonationsSubcategoryByIdFromDB = async (id: string) => {
+  const result = await DonationsSubcategory.findById(id);
 
-//   const meta = await queryBuilder.countTotal();
-//   const result = await queryBuilder.modelQuery;
+  if (!result) {
+    throw new AppError(404, 'This subcategory not found');
+  }
 
-//   return { meta, result };
-// };
+  if (result.isDeleted) {
+    throw new AppError(400, 'This subcategory has been deleted');
+  }
 
-// const getSubcategoryByIdFromDB = async (id: string) => {
-//   const result = await Subcategory.findById(id);
+  return result;
+};
 
-//   if (!result) {
-//     throw new AppError(404, 'This subcategory not found');
-//   }
+const updateDonationsSubcategoryIntoDB = async (
+  id: string,
+  payload: Partial<TDonationsSubcategory>,
+  file?: Express.Multer.File,
+) => {
+  const isSubcategoryExists = await DonationsSubcategory.findById(id);
 
-//   if (result.isDeleted) {
-//     throw new AppError(400, 'This subcategory has been deleted');
-//   }
+  if (!isSubcategoryExists) {
+    throw new AppError(404, 'This subcategory not exists');
+  }
 
-//   return result;
-// };
+  if (isSubcategoryExists.isDeleted) {
+    throw new AppError(400, 'This subcategory has been deleted');
+  }
 
-// const updateSubcategoryIntoDB = async (
-//   id: string,
-//   payload: Partial<TSubcategory>,
-//   file?: Express.Multer.File,
-// ) => {
-//   const isSubcategoryExists = await Subcategory.findById(id);
+  // Auto slug update
+  if (payload.name) {
+    payload.slug = slugify(payload.name, { lower: true, strict: true });
+  }
 
-//   if (!isSubcategoryExists) {
-//     throw new AppError(404, 'This subcategory not exists');
-//   }
+  // If new image is passed
+  if (file) {
+    const uploadedUrl = await uploadToS3({
+      file,
+      fileName: `images/donations/${Math.floor(100000 + Math.random() * 900000)}`,
+    });
 
-//   if (isSubcategoryExists.isDeleted) {
-//     throw new AppError(400, 'This subcategory has been deleted');
-//   }
+    // Delete previous
+    if (isSubcategoryExists.image) {
+      await deleteFromS3(isSubcategoryExists.image);
+    }
 
-//   // Auto slug update
-//   if (payload.name) {
-//     payload.slug = slugify(payload.name, { lower: true, strict: true });
-//   }
+    payload.image = uploadedUrl;
+  }
 
-//   // If new image is passed
-//   if (file) {
-//     const uploadedUrl = await uploadToS3({
-//       file,
-//       fileName: `images/subcategory/${Math.floor(100000 + Math.random() * 900000)}`,
-//     });
+  const updatedCategory = await DonationsSubcategory.findByIdAndUpdate(
+    id,
+    payload,
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
 
-//     // Delete previous
-//     if (isSubcategoryExists.image) {
-//       await deleteFromS3(isSubcategoryExists.image);
-//     }
+  if (!updatedCategory) {
+    throw new AppError(400, 'Subcategory update failed');
+  }
 
-//     payload.image = uploadedUrl;
-//   }
+  return updatedCategory;
+};
 
-//   const updatedCategory = await Subcategory.findByIdAndUpdate(id, payload, {
-//     new: true,
-//     runValidators: true,
-//   });
+const deleteDonationsSubcategoryFromDB = async (id: string) => {
+  const isSubcategoryExists = await DonationsSubcategory.findById(id);
 
-//   if (!updatedCategory) {
-//     throw new AppError(400, 'Subcategory update failed');
-//   }
+  if (!isSubcategoryExists) {
+    throw new AppError(404, 'Subcategory not found');
+  }
 
-//   return updatedCategory;
-// };
+  if (isSubcategoryExists.isDeleted) {
+    throw new AppError(400, 'Subcategory is already deleted');
+  }
 
-// const deleteSubcategoryFromDB = async (id: string) => {
-//   const isSubcategoryExists = await Subcategory.findById(id);
+  const result = await DonationsSubcategory.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true },
+  );
 
-//   if (!isSubcategoryExists) {
-//     throw new AppError(404, 'Subcategory not found');
-//   }
+  if (!result) {
+    throw new AppError(400, 'Failed to delete subcategory');
+  }
 
-//   if (isSubcategoryExists.isDeleted) {
-//     throw new AppError(400, 'Subcategory is already deleted');
-//   }
-
-//   const result = await Subcategory.findByIdAndUpdate(
-//     id,
-//     { isDeleted: true },
-//     { new: true },
-//   );
-
-//   if (!result) {
-//     throw new AppError(400, 'Failed to delete subcategory');
-//   }
-
-//   return result;
-// };
+  return result;
+};
 
 export const DonationsSubcategoryService = {
   createDonationsSubcategoryIntoDB,
-  // getAllSubcategoryFromDB,
-  // getSubcategoryByIdFromDB,
-  // updateSubcategoryIntoDB,
-  // deleteSubcategoryFromDB,
+  getAllDonationsSubcategoryFromDB,
+  getDonationsSubcategoryByIdFromDB,
+  updateDonationsSubcategoryIntoDB,
+  deleteDonationsSubcategoryFromDB,
 };

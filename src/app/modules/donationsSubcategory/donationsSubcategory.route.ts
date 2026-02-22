@@ -20,7 +20,11 @@ router.post(
   DonationsSubcategoryController.createDonationsSubcategory,
 );
 
-// router.get('/', SubcategoryController.getAllSubcategory);
+router.get(
+  '/',
+  auth('admin', 'user'),
+  DonationsSubcategoryController.getAllDonationsSubcategory,
+);
 
 // router.get('/:id', SubcategoryController.getSubcategoryById);
 

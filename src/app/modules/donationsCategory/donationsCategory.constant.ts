@@ -1,1 +1,5 @@
-export const donationsCategorySearchableFields = ['name', 'slug'];
+export const donationsCategorySearchableFields = [
+  'name',
+  'slug',
+  'description',
+];
