@@ -113,10 +113,16 @@ const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
   }
 
   const userObjectId = new mongoose.Types.ObjectId(userId);
-
   const isFirstVote = !poll.votedUsers
     .map((id) => id.toString())
     .includes(userId);
+
+  const selectedOptions: {
+    questionId: string;
+    questionText: string;
+    selectedOptionId: string;
+    selectedOptionText: string;
+  }[] = [];
 
   answers.forEach((answer) => {
     const question = poll.questions.find(
@@ -134,32 +140,43 @@ const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
     }
 
     if (isFirstVote) {
-      (newOption.selectedBy as mongoose.Types.ObjectId[]).push(userObjectId); // ✅
-      newOption.voteCount += 1;
-      question.totalVotesCount += 1;
+      const alreadySelected = newOption.selectedBy
+        .map((id) => id.toString())
+        .includes(userId);
+
+      if (!alreadySelected) {
+        (newOption.selectedBy as mongoose.Types.ObjectId[]).push(userObjectId);
+        newOption.voteCount += 1;
+        question.totalVotesCount += 1;
+      }
     } else {
-      let prevOption = question.options.find(
+      const prevOption = question.options.find(
         (o) =>
           o._id.toString() !== answer.optionId &&
           o.selectedBy.map((id) => id.toString()).includes(userId),
       );
 
-      if (!prevOption) {
-        prevOption = question.options.find(
-          (o) => o._id.toString() !== answer.optionId && o.voteCount > 0,
-        );
-      }
+      const alreadySelectedNew = newOption.selectedBy
+        .map((id) => id.toString())
+        .includes(userId);
 
-      if (prevOption) {
+      if (prevOption && !alreadySelectedNew) {
         prevOption.selectedBy = prevOption.selectedBy.filter(
           (id) => id.toString() !== userId,
         );
-        prevOption.voteCount -= 1;
+        prevOption.voteCount = Math.max(0, prevOption.voteCount - 1);
 
         (newOption.selectedBy as mongoose.Types.ObjectId[]).push(userObjectId);
         newOption.voteCount += 1;
       }
     }
+
+    selectedOptions.push({
+      questionId: question._id.toString(),
+      questionText: question.questionText,
+      selectedOptionId: newOption._id.toString(),
+      selectedOptionText: newOption.optionText,
+    });
   });
 
   if (isFirstVote) {
@@ -169,7 +186,10 @@ const votePollIntoDB = async (payload: TVotePayload, userId: string) => {
 
   await poll.save();
 
-  return { message: 'Vote submitted successfully' };
+  return {
+    message: 'Vote submitted successfully',
+    selectedOptions,
+  };
 };
 
 const deletePollFromDB = async (id: string) => {

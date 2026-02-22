@@ -32,24 +32,24 @@ const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
     },
     description: {
       type: String,
-      default: '',
+      required: true,
+      trim: true,
     },
     image: {
       type: String,
-      default: null,
+      required: true,
     },
-    deleteKey: {
-      type: [String],
-      default: [],
-    },
+
+    deleteKey: [{ type: String, required: false }],
     images: {
       type: [ImageSchema],
-      default: [],
+      required: false,
     },
     fullDescription: {
       type: String,
       default: '',
     },
+
     donations: [
       {
         type: mongoose.Schema.Types.ObjectId,
