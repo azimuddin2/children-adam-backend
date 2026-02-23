@@ -80,6 +80,20 @@ const loginUser = async (payload: TLoginUser) => {
     return {
       accessToken,
       refreshToken,
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        gender: user.gender,
+        image: user.image,
+        address: user.address,
+        isVerified: user.isVerified,
+        needsPasswordChange: user.needsPasswordChange,
+        notifications: user.notifications,
+      },
     };
   }
 };

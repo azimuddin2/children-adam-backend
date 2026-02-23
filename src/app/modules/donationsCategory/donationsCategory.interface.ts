@@ -5,6 +5,8 @@ export type TDonationsCategory = {
   _id?: string;
   name: string;
   slug: string;
+  hadithNarrator: string;
+  hadith: string;
   description: string;
   image: string | null;
 

@@ -26,17 +26,27 @@ router.get(
   DonationsSubcategoryController.getAllDonationsSubcategory,
 );
 
-// router.get('/:id', SubcategoryController.getSubcategoryById);
+router.get(
+  '/:id',
+  auth('admin', 'user'),
+  DonationsSubcategoryController.getDonationsSubcategoryById,
+);
 
-// router.patch(
-//   '/:id',
-//   auth('admin'),
-//   upload.single('image'),
-//   parseData(),
-//   validateRequest(SubcategoryValidation.updateSubcategoryValidationSchema),
-//   SubcategoryController.updateSubcategory,
-// );
+router.patch(
+  '/:id',
+  auth('admin'),
+  upload.single('image'),
+  parseData(),
+  validateRequest(
+    DonationsSubcategoryValidation.updateDonationsSubcategorySchema,
+  ),
+  DonationsSubcategoryController.updateDonationsSubcategory,
+);
 
-// router.delete('/:id', auth('admin'), SubcategoryController.deleteSubcategory);
+router.delete(
+  '/:id',
+  auth('admin'),
+  DonationsSubcategoryController.deleteDonationsSubcategory,
+);
 
 export const DonationsSubcategoryRoutes = router;

@@ -15,6 +15,14 @@ const DonationsCategorySchema = new Schema<TDonationsCategory>(
       lowercase: true,
       trim: true,
     },
+    hadithNarrator: {
+      type: String,
+      required: true,
+    },
+    hadith: {
+      type: String,
+      required: true,
+    },
     description: {
       type: String,
       required: true,

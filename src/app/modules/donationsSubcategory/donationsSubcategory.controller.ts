@@ -37,48 +37,54 @@ const getAllDonationsSubcategory = catchAsync(
   },
 );
 
-const getDonationsSubcategoryById = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result =
-    await DonationsSubcategoryService.getDonationsSubcategoryByIdFromDB(id);
+const getDonationsSubcategoryById = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result =
+      await DonationsSubcategoryService.getDonationsSubcategoryByIdFromDB(id);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Subcategory retrieved successfully',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Subcategory retrieved successfully',
+      data: result,
+    });
+  },
+);
 
-const updateDonationsSubcategory = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result =
-    await DonationsSubcategoryService.updateDonationsSubcategoryIntoDB(
-      id,
-      req.body,
-      req.file,
-    );
+const updateDonationsSubcategory = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result =
+      await DonationsSubcategoryService.updateDonationsSubcategoryIntoDB(
+        id,
+        req.body,
+        req.file,
+      );
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Subcategory has been updated successfully.',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Subcategory has been updated successfully.',
+      data: result,
+    });
+  },
+);
 
-const deleteDonationsSubcategory = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result =
-    await DonationsSubcategoryService.deleteDonationsSubcategoryFromDB(id);
+const deleteDonationsSubcategory = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result =
+      await DonationsSubcategoryService.deleteDonationsSubcategoryFromDB(id);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Subcategory deleted successfully',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Subcategory deleted successfully',
+      data: result,
+    });
+  },
+);
 
 export const DonationsSubcategoryController = {
   createDonationsSubcategory,
