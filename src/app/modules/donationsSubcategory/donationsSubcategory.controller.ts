@@ -71,6 +71,23 @@ const updateDonationsSubcategory = catchAsync(
   },
 );
 
+const updateDonationsSubcategoryGallery = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result =
+    await DonationsSubcategoryService.updateDonationsSubcategoryGalleryIntoDB(
+      id,
+      req.body,
+      req.files,
+    );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Gallery added successfully',
+    data: result,
+  });
+});
+
 const deleteDonationsSubcategory = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -91,5 +108,6 @@ export const DonationsSubcategoryController = {
   getAllDonationsSubcategory,
   getDonationsSubcategoryById,
   updateDonationsSubcategory,
+  updateDonationsSubcategoryGallery,
   deleteDonationsSubcategory,
 };

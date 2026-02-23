@@ -40,7 +40,19 @@ const updateDonationsSubcategorySchema = z.object({
   }),
 });
 
+const updateSubcategoryGallerySchema = z.object({
+  body: z.object({
+    fullDescription: z
+      .string({
+        required_error: 'Full Description is required',
+      })
+      .optional(),
+    deleteKey: z.array(z.string()).optional(),
+  }),
+});
+
 export const DonationsSubcategoryValidation = {
   createDonationsSubcategorySchema,
   updateDonationsSubcategorySchema,
+  updateSubcategoryGallerySchema,
 };

@@ -43,6 +43,17 @@ router.patch(
   DonationsSubcategoryController.updateDonationsSubcategory,
 );
 
+router.patch(
+  '/gallery/:id',
+  auth('admin'),
+  upload.fields([{ name: 'images', maxCount: 10 }]),
+  parseData(),
+  validateRequest(
+    DonationsSubcategoryValidation.updateSubcategoryGallerySchema,
+  ),
+  DonationsSubcategoryController.updateDonationsSubcategoryGallery,
+);
+
 router.delete(
   '/:id',
   auth('admin'),

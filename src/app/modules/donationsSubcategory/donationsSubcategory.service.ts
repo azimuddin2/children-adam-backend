@@ -1,12 +1,21 @@
 import mongoose from 'mongoose';
 import slugify from 'slugify';
 import AppError from '../../errors/AppError';
-import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
+import {
+  deleteFromS3,
+  deleteManyFromS3,
+  uploadManyToS3,
+  uploadToS3,
+} from '../../utils/awsS3FileUploader';
 import QueryBuilder from '../../builder/QueryBuilder';
-import { TDonationsSubcategory } from './donationsSubcategory.interface';
+import {
+  TDonationsSubcategory,
+  TImage,
+} from './donationsSubcategory.interface';
 import { DonationsSubcategory } from './donationsSubcategory.model';
 import { DonationsCategory } from '../donationsCategory/donationsCategory.model';
 import { donationsSubcategorySearchableFields } from './donationsSubcategory.constant';
+import { UploadedFiles } from '../../interface/common.interface';
 
 const createDonationsSubcategoryIntoDB = async (
   payload: TDonationsSubcategory,
@@ -164,6 +173,87 @@ const updateDonationsSubcategoryIntoDB = async (
   return updatedCategory;
 };
 
+const updateDonationsSubcategoryGalleryIntoDB = async (
+  id: string,
+  payload: Partial<TDonationsSubcategory>,
+  files: any,
+) => {
+  // 1. Check if subcategory exists
+  const isSubcategoryExists = await DonationsSubcategory.findById(id);
+  if (!isSubcategoryExists) {
+    throw new AppError(404, 'This subcategory not exists');
+  }
+
+  if (isSubcategoryExists.isDeleted) {
+    throw new AppError(400, 'This subcategory has been deleted');
+  }
+
+  // 2. Parse deleteKey if coming as string (FormData)
+  if (typeof payload.deleteKey === 'string') {
+    try {
+      payload.deleteKey = JSON.parse(payload.deleteKey);
+    } catch {
+      throw new AppError(400, 'Invalid deleteKey format');
+    }
+  }
+
+  const { deleteKey, images, ...updateData } = payload;
+
+  // 3. Upload new images to S3
+  let uploadedImages: TImage[] = [];
+  if (files) {
+    const { images: imageFiles } = files as UploadedFiles;
+
+    if (Array.isArray(imageFiles) && imageFiles.length > 0) {
+      const imgsArray = imageFiles.map((image) => ({
+        file: image,
+        path: `images/donations/gallery`,
+      }));
+
+      try {
+        uploadedImages = await uploadManyToS3(imgsArray);
+      } catch {
+        throw new AppError(500, 'Image upload failed');
+      }
+    }
+  }
+
+  // 4. Delete images from S3 and remove from document
+  if (Array.isArray(deleteKey) && deleteKey.length > 0) {
+    const keysToDelete = deleteKey.map(
+      (key: string) => `images/donations/gallery/${key}`,
+    );
+
+    await deleteManyFromS3(keysToDelete);
+
+    await DonationsSubcategory.findByIdAndUpdate(
+      id,
+      { $pull: { images: { key: { $in: deleteKey } } } },
+      { new: true },
+    );
+  }
+
+  // 5. Push new images to document
+  if (uploadedImages.length > 0) {
+    await DonationsSubcategory.findByIdAndUpdate(
+      id,
+      { $addToSet: { images: { $each: uploadedImages } } },
+      { new: true },
+    );
+  }
+
+  // 6. Update fullDescription and other fields
+  const result = await DonationsSubcategory.findByIdAndUpdate(id, updateData, {
+    new: true,
+  });
+
+  if (!result) {
+    throw new AppError(400, 'Subcategory update failed');
+  }
+
+  return result;
+};
+
 const deleteDonationsSubcategoryFromDB = async (id: string) => {
   const isSubcategoryExists = await DonationsSubcategory.findById(id);
 
@@ -193,5 +283,6 @@ export const DonationsSubcategoryService = {
   getAllDonationsSubcategoryFromDB,
   getDonationsSubcategoryByIdFromDB,
   updateDonationsSubcategoryIntoDB,
+  updateDonationsSubcategoryGalleryIntoDB,
   deleteDonationsSubcategoryFromDB,
 };
