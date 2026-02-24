@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { DonationsCategoryServices } from './donationsCategory.service';
+import { DonationsCategoryServices } from './monthlyDonationCategory.service';
 
 const createDonationsCategory = catchAsync(
   async (req: Request, res: Response) => {
@@ -14,7 +14,7 @@ const createDonationsCategory = catchAsync(
     sendResponse(res, {
       statusCode: 201,
       success: true,
-      message: 'Donations category added successfully',
+      message: 'Monthly donations category added successfully',
       data: result,
     });
   },
@@ -28,7 +28,7 @@ const getAllDonationsCategory = catchAsync(
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Donations Categories retrieved successfully',
+      message: 'Monthly donations categories retrieved successfully',
       meta: result.meta,
       data: result.result,
     });
@@ -44,7 +44,7 @@ const getDonationsCategoryById = catchAsync(
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Donations Category retrieved successfully',
+      message: 'Monthly donations Category retrieved successfully',
       data: result,
     });
   },
@@ -63,7 +63,7 @@ const updateDonationsCategory = catchAsync(
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Donations category has been updated successfully.',
+      message: 'Monthly donations category has been updated successfully.',
       data: result,
     });
   },
@@ -78,7 +78,7 @@ const deleteDonationsCategory = catchAsync(
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Donations category deleted successfully',
+      message: 'Monthly donations category deleted successfully',
       data: result,
     });
   },

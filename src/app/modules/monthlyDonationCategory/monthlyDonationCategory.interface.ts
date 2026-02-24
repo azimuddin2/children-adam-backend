@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { TDonationsSubcategory } from '../donationsSubcategory/donationsSubcategory.interface';
+import { TDonationsSubcategory } from '../monthlyDonationSubcategory/monthlyDonationSubcategory.interface';
 
 export type TDonationsCategory = {
   _id?: string;

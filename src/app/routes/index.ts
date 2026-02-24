@@ -11,8 +11,8 @@ import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
 import { NewsRoutes } from '../modules/news/news.route';
 import { PollRoutes } from '../modules/poll/poll.route';
-import { DonationsCategoryRoutes } from '../modules/donationsCategory/donationsCategory.route';
-import { DonationsSubcategoryRoutes } from '../modules/donationsSubcategory/donationsSubcategory.route';
+import { DonationsCategoryRoutes } from '../modules/monthlyDonationCategory/monthlyDonationCategory.route';
+import { DonationsSubcategoryRoutes } from '../modules/monthlyDonationSubcategory/monthlyDonationSubcategory.route';
 
 const router = Router();
 
@@ -54,11 +54,11 @@ const moduleRoutes = [
     route: PollRoutes,
   },
   {
-    path: '/donations-categories',
+    path: '/monthly-donations-categories',
     route: DonationsCategoryRoutes,
   },
   {
-    path: '/donations-subcategories',
+    path: '/monthly-donations-subcategories',
     route: DonationsSubcategoryRoutes,
   },
   // TODO:

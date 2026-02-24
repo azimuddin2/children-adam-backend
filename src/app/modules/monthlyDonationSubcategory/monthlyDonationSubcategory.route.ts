@@ -3,8 +3,8 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
-import { DonationsSubcategoryValidation } from './donationsSubcategory.validation';
-import { DonationsSubcategoryController } from './donationsSubcategory.controller';
+import { DonationsSubcategoryValidation } from './monthlyDonationSubcategory.validation';
+import { DonationsSubcategoryController } from './monthlyDonationSubcategory.controller';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });

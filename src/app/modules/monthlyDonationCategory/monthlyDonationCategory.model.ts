@@ -1,5 +1,5 @@
 import mongoose, { model, Schema } from 'mongoose';
-import { TDonationsCategory } from './donationsCategory.interface';
+import { TDonationsCategory } from './monthlyDonationCategory.interface';
 
 const DonationsCategorySchema = new Schema<TDonationsCategory>(
   {

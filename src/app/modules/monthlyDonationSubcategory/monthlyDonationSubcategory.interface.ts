@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { TDonationsCategory } from '../donationsCategory/donationsCategory.interface';
+import { TDonationsCategory } from '../monthlyDonationCategory/monthlyDonationCategory.interface';
 
 export type TImage = {
   url: string;

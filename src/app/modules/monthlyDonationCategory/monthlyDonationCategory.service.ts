@@ -2,9 +2,9 @@ import slugify from 'slugify';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
-import { donationsCategorySearchableFields } from './donationsCategory.constant';
-import { TDonationsCategory } from './donationsCategory.interface';
-import { DonationsCategory } from './donationsCategory.model';
+import { donationsCategorySearchableFields } from './monthlyDonationCategory.constant';
+import { TDonationsCategory } from './monthlyDonationCategory.interface';
+import { DonationsCategory } from './monthlyDonationCategory.model';
 
 const createDonationsCategoryIntoDB = async (
   payload: TDonationsCategory,

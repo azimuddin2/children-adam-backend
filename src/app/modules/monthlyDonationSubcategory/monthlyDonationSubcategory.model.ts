@@ -2,7 +2,7 @@ import mongoose, { model, Schema } from 'mongoose';
 import {
   TDonationsSubcategory,
   TImage,
-} from './donationsSubcategory.interface';
+} from './monthlyDonationSubcategory.interface';
 
 const ImageSchema = new Schema<TImage>(
   {
