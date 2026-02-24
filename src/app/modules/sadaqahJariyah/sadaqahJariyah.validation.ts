@@ -26,7 +26,17 @@ const updateSadaqahJariyahValidationSchema = z.object({
   }),
 });
 
+const updateSadaqahJariyahContentValidationSchema = z.object({
+  body: z.object({
+    fullDescription: z.string({
+      required_error: 'Full Description is required',
+    }),
+    deleteKey: z.array(z.string()).optional(),
+  }),
+});
+
 export const SadaqahJariyahValidation = {
   createSadaqahJariyahValidationSchema,
   updateSadaqahJariyahValidationSchema,
+  updateSadaqahJariyahContentValidationSchema,
 };

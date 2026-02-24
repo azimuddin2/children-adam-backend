@@ -43,6 +43,17 @@ router.patch(
   SadaqahJariyahController.updateSadaqahJariyah,
 );
 
+router.patch(
+  '/content/:id',
+  auth('admin'),
+  upload.fields([{ name: 'images', maxCount: 10 }]),
+  parseData(),
+  validateRequest(
+    SadaqahJariyahValidation.updateSadaqahJariyahContentValidationSchema,
+  ),
+  SadaqahJariyahController.updateSadaqahJariyahContent,
+);
+
 router.delete(
   '/:id',
   auth('admin'),

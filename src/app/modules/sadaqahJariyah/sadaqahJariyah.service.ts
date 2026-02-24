@@ -1,10 +1,16 @@
 import slugify from 'slugify';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
-import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
-import { TSadaqahJariyah } from './sadaqahJariyah.interface';
+import {
+  deleteFromS3,
+  deleteManyFromS3,
+  uploadManyToS3,
+  uploadToS3,
+} from '../../utils/awsS3FileUploader';
+import { TImage, TSadaqahJariyah } from './sadaqahJariyah.interface';
 import { SadaqahJariyah } from './sadaqahJariyah.model';
 import { sadaqahJariyahSearchableFields } from './sadaqahJariyah.constant';
+import { UploadedFiles } from '../../interface/common.interface';
 
 const createSadaqahJariyahIntoDB = async (
   payload: TSadaqahJariyah,
@@ -130,6 +136,87 @@ const updateSadaqahJariyahIntoDB = async (
   }
 };
 
+const updateSadaqahJariyahContentIntoDB = async (
+  id: string,
+  payload: Partial<TSadaqahJariyah>,
+  files: any,
+) => {
+  // 1. Check if sadaqah jariyah exists
+  const isSadaqahJariyahExists = await SadaqahJariyah.findById(id);
+  if (!isSadaqahJariyahExists) {
+    throw new AppError(404, 'This sadaqah jariyah not exists');
+  }
+
+  if (isSadaqahJariyahExists.isDeleted) {
+    throw new AppError(400, 'This sadaqah jariyah has been deleted');
+  }
+
+  // 2. Parse deleteKey if coming as string (FormData)
+  if (typeof payload.deleteKey === 'string') {
+    try {
+      payload.deleteKey = JSON.parse(payload.deleteKey);
+    } catch {
+      throw new AppError(400, 'Invalid deleteKey format');
+    }
+  }
+
+  const { deleteKey, images, ...updateData } = payload;
+
+  // 3. Upload new images to S3
+  let uploadedImages: TImage[] = [];
+  if (files) {
+    const { images: imageFiles } = files as UploadedFiles;
+
+    if (Array.isArray(imageFiles) && imageFiles.length > 0) {
+      const imgsArray = imageFiles.map((image) => ({
+        file: image,
+        path: `images/sadaqah/gallery`,
+      }));
+
+      try {
+        uploadedImages = await uploadManyToS3(imgsArray);
+      } catch {
+        throw new AppError(500, 'Image upload failed');
+      }
+    }
+  }
+
+  // 4. Delete images from S3 and remove from document
+  if (Array.isArray(deleteKey) && deleteKey.length > 0) {
+    const keysToDelete = deleteKey.map(
+      (key: string) => `images/donations/gallery/${key}`,
+    );
+
+    await deleteManyFromS3(keysToDelete);
+
+    await SadaqahJariyah.findByIdAndUpdate(
+      id,
+      { $pull: { images: { key: { $in: deleteKey } } } },
+      { new: true },
+    );
+  }
+
+  // 5. Push new images to document
+  if (uploadedImages.length > 0) {
+    await SadaqahJariyah.findByIdAndUpdate(
+      id,
+      { $addToSet: { images: { $each: uploadedImages } } },
+      { new: true },
+    );
+  }
+
+  // 6. Update fullDescription and other fields
+  const result = await SadaqahJariyah.findByIdAndUpdate(id, updateData, {
+    new: true,
+  });
+
+  if (!result) {
+    throw new AppError(400, 'Sadaqah jariyah update failed');
+  }
+
+  return result;
+};
+
 const deleteSadaqahJariyahFromDB = async (id: string) => {
   const isSadaqahJariyahExists = await SadaqahJariyah.findById(id);
 
@@ -138,7 +225,7 @@ const deleteSadaqahJariyahFromDB = async (id: string) => {
   }
 
   if (isSadaqahJariyahExists.isDeleted) {
-    throw new AppError(400, 'Donations category is already deleted');
+    throw new AppError(400, 'Sadaqah jariyah is already deleted');
   }
 
   const result = await SadaqahJariyah.findByIdAndUpdate(
@@ -159,5 +246,6 @@ export const SadaqahJariyahServices = {
   getAllSadaqahJariyahFromDB,
   getSadaqahJariyahByIdFromDB,
   updateSadaqahJariyahIntoDB,
+  updateSadaqahJariyahContentIntoDB,
   deleteSadaqahJariyahFromDB,
 };
