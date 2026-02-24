@@ -14,6 +14,17 @@ const createPoll = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPollStats = catchAsync(async (req: Request, res: Response) => {
+  const result = await PollServices.getPollStatsFromDB();
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Polls stats retrieved successfully',
+    data: result,
+  });
+});
+
 const getAllPoll = catchAsync(async (req: Request, res: Response) => {
   const result = await PollServices.getAllPollFromDB(req.query);
 
@@ -63,6 +74,7 @@ const deletePoll = catchAsync(async (req, res) => {
 
 export const PollControllers = {
   createPoll,
+  getPollStats,
   getAllPoll,
   getPollById,
   votePoll,

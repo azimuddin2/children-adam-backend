@@ -13,6 +13,8 @@ router.post(
   PollControllers.createPoll,
 );
 
+router.get('/stats', auth('admin'), PollControllers.getPollStats);
+
 router.get('/', auth('admin', 'user'), PollControllers.getAllPoll);
 
 router.get('/:id', auth('admin', 'user'), PollControllers.getPollById);

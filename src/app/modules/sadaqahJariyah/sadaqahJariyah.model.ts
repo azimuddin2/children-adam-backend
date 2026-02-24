@@ -1,8 +1,5 @@
 import mongoose, { model, Schema } from 'mongoose';
-import {
-  TDonationsSubcategory,
-  TImage,
-} from './monthlyDonationSubcategory.interface';
+import { TImage, TSadaqahJariyah } from './sadaqahJariyah.interface';
 
 const ImageSchema = new Schema<TImage>(
   {
@@ -12,13 +9,8 @@ const ImageSchema = new Schema<TImage>(
   { _id: false },
 );
 
-const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
+const SadaqahJariyahSchema = new Schema<TSadaqahJariyah>(
   {
-    donationsCategory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'DonationsCategory',
-      required: true,
-    },
     name: {
       type: String,
       required: true,
@@ -29,6 +21,7 @@ const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
     },
     description: {
       type: String,
@@ -64,7 +57,7 @@ const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
   { timestamps: true },
 );
 
-export const DonationsSubcategory = model<TDonationsSubcategory>(
-  'DonationsSubcategory',
-  DonationsSubcategorySchema,
+export const SadaqahJariyah = model<TSadaqahJariyah>(
+  'SadaqahJariyah',
+  SadaqahJariyahSchema,
 );

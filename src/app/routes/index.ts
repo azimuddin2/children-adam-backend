@@ -13,6 +13,7 @@ import { NewsRoutes } from '../modules/news/news.route';
 import { PollRoutes } from '../modules/poll/poll.route';
 import { DonationsCategoryRoutes } from '../modules/monthlyDonationCategory/monthlyDonationCategory.route';
 import { DonationsSubcategoryRoutes } from '../modules/monthlyDonationSubcategory/monthlyDonationSubcategory.route';
+import { SadaqahJariyahRoutes } from '../modules/sadaqahJariyah/sadaqahJariyah.route';
 
 const router = Router();
 
@@ -60,6 +61,10 @@ const moduleRoutes = [
   {
     path: '/monthly-donations-subcategories',
     route: DonationsSubcategoryRoutes,
+  },
+  {
+    path: '/sadaqah-jariyah',
+    route: SadaqahJariyahRoutes,
   },
   // TODO:
   {

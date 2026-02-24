@@ -34,6 +34,33 @@ const createPollIntoDB = async (payload: TPoll) => {
   return result;
 };
 
+const getPollStatsFromDB = async () => {
+  const [totalPolls, activePolls, closedPolls, responsesResult] =
+    await Promise.all([
+      // Total polls (not deleted)
+      Poll.countDocuments({ isDeleted: false }),
+
+      // Active polls
+      Poll.countDocuments({ status: 'active', isDeleted: false }),
+
+      // Closed polls
+      Poll.countDocuments({ status: 'closed', isDeleted: false }),
+
+      // Total responses (sum of all poll responses)
+      Poll.aggregate([
+        { $match: { isDeleted: false } },
+        { $group: { _id: null, totalResponses: { $sum: '$responses' } } },
+      ]),
+    ]);
+
+  return {
+    totalPolls,
+    activePolls,
+    closedPolls,
+    totalResponses: responsesResult[0]?.totalResponses ?? 0,
+  };
+};
+
 const getAllPollFromDB = async (query: Record<string, unknown>) => {
   const { status } = query;
   const filter: FilterQuery<TPoll> = {};
@@ -218,6 +245,7 @@ const deletePollFromDB = async (id: string) => {
 
 export const PollServices = {
   createPollIntoDB,
+  getPollStatsFromDB,
   getAllPollFromDB,
   getPollByIdFromDB,
   votePollIntoDB,
