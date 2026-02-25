@@ -1,17 +1,16 @@
 import { Types } from 'mongoose';
-import { TDonationsCategory } from '../monthlyDonationCategory/monthlyDonationCategory.interface';
+import { TTopAppealsCategory } from '../topAppealsCategory/topAppealsCategory.interface';
 
 export type TImage = {
   url: string;
   key: string;
 };
 
-export type TDonationsSubcategory = {
+export type TTopAppeals = {
   _id?: string;
-  donationsCategory: TDonationsCategory | Types.ObjectId;
+  topAppealsCategory: TTopAppealsCategory | Types.ObjectId;
 
   name: string;
-  slug: string;
   description: string;
   image: string | null;
 

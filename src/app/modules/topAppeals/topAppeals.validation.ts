@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-const createDonationsSubcategorySchema = z.object({
+const createTopAppealsSchema = z.object({
   body: z.object({
-    donationsCategory: z.string({
-      required_error: 'Donations Category ID is required',
+    topAppealsCategory: z.string({
+      required_error: 'Top Appeals Category ID is required',
     }),
     name: z.string({
-      required_error: 'Subcategory Name is required',
+      required_error: 'Top Appeals Name is required',
     }),
     description: z.string({
       required_error: 'Description is required',
@@ -17,16 +17,16 @@ const createDonationsSubcategorySchema = z.object({
   }),
 });
 
-const updateDonationsSubcategorySchema = z.object({
+const updateTopAppealsSchema = z.object({
   body: z.object({
-    donationsCategory: z
+    topAppealsCategory: z
       .string({
-        required_error: 'Donations Category ID is required',
+        required_error: 'Top Appeals Category ID is required',
       })
       .optional(),
     name: z
       .string({
-        required_error: 'Subcategory Name is required',
+        required_error: 'Top Appeals Name is required',
       })
       .optional(),
     description: z
@@ -40,7 +40,7 @@ const updateDonationsSubcategorySchema = z.object({
   }),
 });
 
-const updateSubcategoryContentSchema = z.object({
+const updateTopAppealsContentSchema = z.object({
   body: z.object({
     fullDescription: z
       .string({
@@ -51,8 +51,8 @@ const updateSubcategoryContentSchema = z.object({
   }),
 });
 
-export const DonationsSubcategoryValidation = {
-  createDonationsSubcategorySchema,
-  updateDonationsSubcategorySchema,
-  updateSubcategoryContentSchema,
+export const TopAppealsValidation = {
+  createTopAppealsSchema,
+  updateTopAppealsSchema,
+  updateTopAppealsContentSchema,
 };

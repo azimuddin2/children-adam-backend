@@ -1,8 +1,5 @@
 import mongoose, { model, Schema } from 'mongoose';
-import {
-  TDonationsSubcategory,
-  TImage,
-} from './monthlyDonationSubcategory.interface';
+import { TImage, TTopAppeals } from './topAppeals.interface';
 
 const ImageSchema = new Schema<TImage>(
   {
@@ -12,23 +9,17 @@ const ImageSchema = new Schema<TImage>(
   { _id: false },
 );
 
-const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
+const TopAppealsSchema = new Schema<TTopAppeals>(
   {
-    donationsCategory: {
+    topAppealsCategory: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'DonationsCategory',
+      ref: 'TopAppealsCategory',
       required: true,
     },
     name: {
       type: String,
       required: true,
       trim: true,
-    },
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
     },
     description: {
       type: String,
@@ -37,7 +28,7 @@ const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
     },
     image: {
       type: String,
-      required: true,
+      default: null,
     },
 
     deleteKey: [{ type: String, required: false }],
@@ -64,7 +55,4 @@ const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
   { timestamps: true },
 );
 
-export const DonationsSubcategory = model<TDonationsSubcategory>(
-  'DonationsSubcategory',
-  DonationsSubcategorySchema,
-);
+export const TopAppeals = model<TTopAppeals>('TopAppeals', TopAppealsSchema);

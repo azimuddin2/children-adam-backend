@@ -3,8 +3,8 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
-import { DonationsSubcategoryValidation } from './monthlyDonationSubcategory.validation';
-import { DonationsSubcategoryController } from './monthlyDonationSubcategory.controller';
+import { TopAppealsValidation } from './topAppeals.validation';
+import { TopAppealsController } from './topAppeals.controller';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -14,22 +14,16 @@ router.post(
   auth('admin'),
   upload.single('image'),
   parseData(),
-  validateRequest(
-    DonationsSubcategoryValidation.createDonationsSubcategorySchema,
-  ),
-  DonationsSubcategoryController.createDonationsSubcategory,
+  validateRequest(TopAppealsValidation.createTopAppealsSchema),
+  TopAppealsController.createTopAppeals,
 );
 
-router.get(
-  '/',
-  auth('admin', 'user'),
-  DonationsSubcategoryController.getAllDonationsSubcategory,
-);
+router.get('/', auth('admin', 'user'), TopAppealsController.getAllTopAppeals);
 
 router.get(
   '/:id',
   auth('admin', 'user'),
-  DonationsSubcategoryController.getDonationsSubcategoryById,
+  TopAppealsController.getTopAppealsById,
 );
 
 router.patch(
@@ -37,10 +31,8 @@ router.patch(
   auth('admin'),
   upload.single('image'),
   parseData(),
-  validateRequest(
-    DonationsSubcategoryValidation.updateDonationsSubcategorySchema,
-  ),
-  DonationsSubcategoryController.updateDonationsSubcategory,
+  validateRequest(TopAppealsValidation.updateTopAppealsSchema),
+  TopAppealsController.updateTopAppeals,
 );
 
 router.patch(
@@ -48,16 +40,10 @@ router.patch(
   auth('admin'),
   upload.fields([{ name: 'images', maxCount: 10 }]),
   parseData(),
-  validateRequest(
-    DonationsSubcategoryValidation.updateSubcategoryContentSchema,
-  ),
-  DonationsSubcategoryController.updateDonationsSubcategoryContent,
+  validateRequest(TopAppealsValidation.updateTopAppealsContentSchema),
+  TopAppealsController.updateTopAppealsContent,
 );
 
-router.delete(
-  '/:id',
-  auth('admin'),
-  DonationsSubcategoryController.deleteDonationsSubcategory,
-);
+router.delete('/:id', auth('admin'), TopAppealsController.deleteTopAppeals);
 
-export const DonationsSubcategoryRoutes = router;
+export const TopAppealsRoutes = router;

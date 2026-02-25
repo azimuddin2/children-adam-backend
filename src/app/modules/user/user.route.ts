@@ -16,6 +16,8 @@ router.post(
 
 router.get('/', auth('admin'), UserControllers.getAllUsers);
 
+router.get('/:id', auth('admin', 'user'), UserControllers.getUserById);
+
 router.get('/profile', auth('user', 'admin'), UserControllers.getUserProfile);
 
 router.patch(

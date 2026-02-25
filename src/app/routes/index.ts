@@ -14,6 +14,8 @@ import { PollRoutes } from '../modules/poll/poll.route';
 import { DonationsCategoryRoutes } from '../modules/monthlyDonationCategory/monthlyDonationCategory.route';
 import { DonationsSubcategoryRoutes } from '../modules/monthlyDonationSubcategory/monthlyDonationSubcategory.route';
 import { SadaqahJariyahRoutes } from '../modules/sadaqahJariyah/sadaqahJariyah.route';
+import { TopAppealsRoutes } from '../modules/topAppeals/topAppeals.route';
+import { TopAppealsCategoryRoutes } from '../modules/topAppealsCategory/topAppealsCategory.route';
 
 const router = Router();
 
@@ -65,6 +67,14 @@ const moduleRoutes = [
   {
     path: '/sadaqah-jariyah',
     route: SadaqahJariyahRoutes,
+  },
+  {
+    path: '/top-appeals-categories',
+    route: TopAppealsCategoryRoutes,
+  },
+  {
+    path: '/top-appeals',
+    route: TopAppealsRoutes,
   },
   // TODO:
   {

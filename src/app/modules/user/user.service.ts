@@ -133,6 +133,24 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
   return { meta, result };
 };
 
+const getUserByIdFromDB = async (id: string) => {
+  const result = await User.findById(id).select('-password');
+
+  if (!result) {
+    throw new AppError(404, 'This user not found');
+  }
+
+  if (result?.isDeleted === true) {
+    throw new AppError(403, 'This user is deleted!');
+  }
+
+  if (result?.status === 'blocked') {
+    throw new AppError(403, 'This user is blocked!');
+  }
+
+  return result;
+};
+
 const getUserProfileFromDB = async (email: string) => {
   const result = await User.findOne({ email: email }).select('-password');
 
@@ -321,6 +339,7 @@ const updateNotificationSettingsIntoDB = async (
 export const UserServices = {
   signupUserIntoDB,
   getAllUsersFromDB,
+  getUserByIdFromDB,
   getUserProfileFromDB,
   updateUserProfileIntoDB,
   updateUserPictureIntoDB,

@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import slugify from 'slugify';
 import AppError from '../../errors/AppError';
 import {
   deleteFromS3,
@@ -8,68 +7,60 @@ import {
   uploadToS3,
 } from '../../utils/awsS3FileUploader';
 import QueryBuilder from '../../builder/QueryBuilder';
-import { DonationsSubcategory } from './monthlyDonationSubcategory.model';
-import { DonationsCategory } from '../monthlyDonationCategory/monthlyDonationCategory.model';
-import { donationsSubcategorySearchableFields } from './monthlyDonationSubcategory.constant';
 import { UploadedFiles } from '../../interface/common.interface';
-import {
-  TDonationsSubcategory,
-  TImage,
-} from './monthlyDonationSubcategory.interface';
+import { TopAppeals } from './topAppeals.model';
+import { TopAppealsCategory } from '../topAppealsCategory/topAppealsCategory.model';
+import { TImage, TTopAppeals } from './topAppeals.interface';
+import { topAppealsSearchableFields } from './topAppeals.constant';
 
-const createDonationsSubcategoryIntoDB = async (
-  payload: TDonationsSubcategory,
+const createTopAppealsIntoDB = async (
+  payload: TTopAppeals,
   file?: Express.Multer.File,
 ) => {
-  const { donationsCategory } = payload;
+  const { topAppealsCategory } = payload;
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    payload.donationsCategory = donationsCategory;
+    payload.topAppealsCategory = topAppealsCategory;
 
-    // 1️⃣ Check if  donations subcategory exists
-    const isExists = await DonationsSubcategory.findOne({
+    // 1️⃣ Check if  top appeals exists
+    const isExists = await TopAppeals.findOne({
       name: payload.name,
       isDeleted: false,
     }).session(session);
 
     if (isExists) {
-      throw new AppError(400, 'This donations subcategory already exists');
-    }
-
-    // 2️⃣ Auto generate slug
-    if (payload.name) {
-      payload.slug = slugify(payload.name, { lower: true, strict: true });
+      throw new AppError(400, 'This top appeals already exists');
     }
 
     // 3️⃣ Upload image if provided
     if (file) {
       const uploadedUrl = await uploadToS3({
         file,
-        fileName: `images/donations/${Date.now()}-${Math.floor(
+        fileName: `images/appeals/${Date.now()}-${Math.floor(
           1000 + Math.random() * 9000,
         )}`,
       });
       payload.image = uploadedUrl;
     }
 
-    // 4️⃣ Create donations subcategory inside transaction
-    const created = await DonationsSubcategory.create([payload], { session });
+    // 4️⃣ Create top appeals inside transaction
+    const created = await TopAppeals.create([payload], { session });
     if (!created || created.length === 0) {
-      throw new AppError(400, 'Failed to create subcategory');
+      throw new AppError(400, 'Failed to create top appeals');
     }
 
     // 5️⃣ Push subcategory ID to Category
-    const updatedCategory = await DonationsCategory.findByIdAndUpdate(
-      donationsCategory,
-      { $push: { donationsSubcategory: created[0]._id } },
+    const updatedCategory = await TopAppealsCategory.findByIdAndUpdate(
+      topAppealsCategory,
+      { $push: { topAppeals: created[0]._id } },
       { new: true, session },
     );
 
     if (!updatedCategory) {
-      throw new AppError(404, 'Donations Category not found');
+      throw new AppError(404, 'Top Appeals Category not found');
     }
 
     // 6️⃣ Commit transaction
@@ -80,66 +71,54 @@ const createDonationsSubcategoryIntoDB = async (
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    throw new AppError(
-      500,
-      error.message || 'Donations subcategory creation failed',
-    );
+    throw new AppError(500, error.message || 'Top appeals creation failed');
   }
 };
 
-const getAllDonationsSubcategoryFromDB = async (
-  query: Record<string, unknown>,
-) => {
-  const donationsSubcategoryQuery = new QueryBuilder(
-    DonationsSubcategory.find({ isDeleted: false }).populate(
-      'donationsCategory',
-    ),
+const getAllTopAppealsFromDB = async (query: Record<string, unknown>) => {
+  const topAppealsQuery = new QueryBuilder(
+    TopAppeals.find({ isDeleted: false }).populate('topAppealsCategory'),
     query,
   )
-    .search(donationsSubcategorySearchableFields)
+    .search(topAppealsSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const meta = await donationsSubcategoryQuery.countTotal();
-  const result = await donationsSubcategoryQuery.modelQuery;
+  const meta = await topAppealsQuery.countTotal();
+  const result = await topAppealsQuery.modelQuery;
 
   return { meta, result };
 };
 
-const getDonationsSubcategoryByIdFromDB = async (id: string) => {
-  const result = await DonationsSubcategory.findById(id);
+const getTopAppealsByIdFromDB = async (id: string) => {
+  const result = await TopAppeals.findById(id);
 
   if (!result) {
-    throw new AppError(404, 'This subcategory not found');
+    throw new AppError(404, 'This top appeals not found');
   }
 
   if (result.isDeleted) {
-    throw new AppError(400, 'This subcategory has been deleted');
+    throw new AppError(400, 'This top appeals has been deleted');
   }
 
   return result;
 };
 
-const updateDonationsSubcategoryIntoDB = async (
+const updateTopAppealsIntoDB = async (
   id: string,
-  payload: Partial<TDonationsSubcategory>,
+  payload: Partial<TTopAppeals>,
   file?: Express.Multer.File,
 ) => {
-  const isSubcategoryExists = await DonationsSubcategory.findById(id);
+  const isTopAppealsExists = await TopAppeals.findById(id);
 
-  if (!isSubcategoryExists) {
-    throw new AppError(404, 'This subcategory not exists');
+  if (!isTopAppealsExists) {
+    throw new AppError(404, 'This top appeals not exists');
   }
 
-  if (isSubcategoryExists.isDeleted) {
-    throw new AppError(400, 'This subcategory has been deleted');
-  }
-
-  // Auto slug update
-  if (payload.name) {
-    payload.slug = slugify(payload.name, { lower: true, strict: true });
+  if (isTopAppealsExists.isDeleted) {
+    throw new AppError(400, 'This top appeals has been deleted');
   }
 
   // If new image is passed
@@ -150,42 +129,38 @@ const updateDonationsSubcategoryIntoDB = async (
     });
 
     // Delete previous
-    if (isSubcategoryExists.image) {
-      await deleteFromS3(isSubcategoryExists.image);
+    if (isTopAppealsExists.image) {
+      await deleteFromS3(isTopAppealsExists.image);
     }
 
     payload.image = uploadedUrl;
   }
 
-  const updatedCategory = await DonationsSubcategory.findByIdAndUpdate(
-    id,
-    payload,
-    {
-      new: true,
-      runValidators: true,
-    },
-  );
+  const updatedCategory = await TopAppeals.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
 
   if (!updatedCategory) {
-    throw new AppError(400, 'Subcategory update failed');
+    throw new AppError(400, 'Top appeals update failed');
   }
 
   return updatedCategory;
 };
 
-const updateDonationsSubcategoryContentIntoDB = async (
+const updateTopAppealsContentIntoDB = async (
   id: string,
-  payload: Partial<TDonationsSubcategory>,
+  payload: Partial<TTopAppeals>,
   files: any,
 ) => {
-  // 1. Check if subcategory exists
-  const isSubcategoryExists = await DonationsSubcategory.findById(id);
-  if (!isSubcategoryExists) {
-    throw new AppError(404, 'This subcategory not exists');
+  // 1. Check if top appeals exists
+  const isTopAppealsExists = await TopAppeals.findById(id);
+  if (!isTopAppealsExists) {
+    throw new AppError(404, 'This top appeals not exists');
   }
 
-  if (isSubcategoryExists.isDeleted) {
-    throw new AppError(400, 'This subcategory has been deleted');
+  if (isTopAppealsExists.isDeleted) {
+    throw new AppError(400, 'This top appeals has been deleted');
   }
 
   // 2. Parse deleteKey if coming as string (FormData)
@@ -207,7 +182,7 @@ const updateDonationsSubcategoryContentIntoDB = async (
     if (Array.isArray(imageFiles) && imageFiles.length > 0) {
       const imgsArray = imageFiles.map((image) => ({
         file: image,
-        path: `images/donations/gallery`,
+        path: `images/appeals/gallery`,
       }));
 
       try {
@@ -221,12 +196,12 @@ const updateDonationsSubcategoryContentIntoDB = async (
   // 4. Delete images from S3 and remove from document
   if (Array.isArray(deleteKey) && deleteKey.length > 0) {
     const keysToDelete = deleteKey.map(
-      (key: string) => `images/donations/gallery/${key}`,
+      (key: string) => `images/appeals/gallery/${key}`,
     );
 
     await deleteManyFromS3(keysToDelete);
 
-    await DonationsSubcategory.findByIdAndUpdate(
+    await TopAppeals.findByIdAndUpdate(
       id,
       { $pull: { images: { key: { $in: deleteKey } } } },
       { new: true },
@@ -235,7 +210,7 @@ const updateDonationsSubcategoryContentIntoDB = async (
 
   // 5. Push new images to document
   if (uploadedImages.length > 0) {
-    await DonationsSubcategory.findByIdAndUpdate(
+    await TopAppeals.findByIdAndUpdate(
       id,
       { $addToSet: { images: { $each: uploadedImages } } },
       { new: true },
@@ -243,46 +218,46 @@ const updateDonationsSubcategoryContentIntoDB = async (
   }
 
   // 6. Update fullDescription and other fields
-  const result = await DonationsSubcategory.findByIdAndUpdate(id, updateData, {
+  const result = await TopAppeals.findByIdAndUpdate(id, updateData, {
     new: true,
   });
 
   if (!result) {
-    throw new AppError(400, 'Subcategory update failed');
+    throw new AppError(400, 'Top appeals update failed');
   }
 
   return result;
 };
 
-const deleteDonationsSubcategoryFromDB = async (id: string) => {
-  const isSubcategoryExists = await DonationsSubcategory.findById(id);
+const deleteTopAppealsFromDB = async (id: string) => {
+  const isTopAppealsExists = await TopAppeals.findById(id);
 
-  if (!isSubcategoryExists) {
-    throw new AppError(404, 'Subcategory not found');
+  if (!isTopAppealsExists) {
+    throw new AppError(404, 'Top appeals not found');
   }
 
-  if (isSubcategoryExists.isDeleted) {
-    throw new AppError(400, 'Subcategory is already deleted');
+  if (isTopAppealsExists.isDeleted) {
+    throw new AppError(400, 'Top appeals is already deleted');
   }
 
-  const result = await DonationsSubcategory.findByIdAndUpdate(
+  const result = await TopAppeals.findByIdAndUpdate(
     id,
     { isDeleted: true },
     { new: true },
   );
 
   if (!result) {
-    throw new AppError(400, 'Failed to delete subcategory');
+    throw new AppError(400, 'Failed to delete top appeals');
   }
 
   return result;
 };
 
-export const DonationsSubcategoryService = {
-  createDonationsSubcategoryIntoDB,
-  getAllDonationsSubcategoryFromDB,
-  getDonationsSubcategoryByIdFromDB,
-  updateDonationsSubcategoryIntoDB,
-  updateDonationsSubcategoryContentIntoDB,
-  deleteDonationsSubcategoryFromDB,
+export const TopAppealsService = {
+  createTopAppealsIntoDB,
+  getAllTopAppealsFromDB,
+  getTopAppealsByIdFromDB,
+  updateTopAppealsIntoDB,
+  updateTopAppealsContentIntoDB,
+  deleteTopAppealsFromDB,
 };
