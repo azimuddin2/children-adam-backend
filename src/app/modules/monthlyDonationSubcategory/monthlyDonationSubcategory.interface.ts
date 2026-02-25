@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { TDonationsCategory } from '../monthlyDonationCategory/monthlyDonationCategory.interface';
+import { TMonthlyDonations } from '../monthlyDonations/monthlyDonations.interface';
 
 export type TImage = {
   url: string;
@@ -19,7 +20,7 @@ export type TDonationsSubcategory = {
   images: TImage[];
   fullDescription: string;
 
-  donations: Types.ObjectId[] | string[];
+  donations: TMonthlyDonations[] | Types.ObjectId[] | string[];
 
   isDeleted: boolean;
 };
