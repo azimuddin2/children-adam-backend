@@ -91,9 +91,15 @@ const getAllDonationsSubcategoryFromDB = async (
   query: Record<string, unknown>,
 ) => {
   const donationsSubcategoryQuery = new QueryBuilder(
-    DonationsSubcategory.find({ isDeleted: false }).populate(
-      'donationsCategory',
-    ),
+    DonationsSubcategory.find({ isDeleted: false })
+      .populate({
+        path: 'donationsCategory',
+        match: { isDeleted: false }, // শুধু isDeleted: false category load হবে
+      })
+      .populate({
+        path: 'donations',
+        match: { isDeleted: false },
+      }),
     query,
   )
     .search(donationsSubcategorySearchableFields)
@@ -109,7 +115,9 @@ const getAllDonationsSubcategoryFromDB = async (
 };
 
 const getDonationsSubcategoryByIdFromDB = async (id: string) => {
-  const result = await DonationsSubcategory.findById(id);
+  const result = await DonationsSubcategory.findById(id)
+    .populate('donationsCategory')
+    .populate('donations');
 
   if (!result) {
     throw new AppError(404, 'This subcategory not found');

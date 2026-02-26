@@ -46,7 +46,7 @@ const SadaqahJariyahSchema = new Schema<TSadaqahJariyah>(
     donations: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Donations',
+        ref: 'SadaqahJariyahDonations',
       },
     ],
     isDeleted: {

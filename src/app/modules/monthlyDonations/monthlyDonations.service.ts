@@ -48,7 +48,7 @@ const createMonthlyDonationsIntoDB = async (
     // 5️⃣ Push subcategory ID to Category
     const updatedSubcategory = await DonationsSubcategory.findByIdAndUpdate(
       donationsSubcategory,
-      { $push: { monthlyDonations: created[0]._id } },
+      { $push: { donations: created[0]._id } },
       { new: true, session },
     );
 

@@ -51,7 +51,10 @@ const createSadaqahJariyahIntoDB = async (
 
 const getAllSadaqahJariyahFromDB = async (query: Record<string, unknown>) => {
   const sadaqahJariyahQuery = new QueryBuilder(
-    SadaqahJariyah.find({ isDeleted: false }),
+    SadaqahJariyah.find({ isDeleted: false }).populate({
+      path: 'donations',
+      match: { isDeleted: false },
+    }),
     query,
   )
     .search(sadaqahJariyahSearchableFields)

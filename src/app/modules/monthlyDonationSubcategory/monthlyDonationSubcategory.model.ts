@@ -49,11 +49,10 @@ const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
       type: String,
       default: '',
     },
-
     donations: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Donations',
+        ref: 'MonthlyDonations',
       },
     ],
     isDeleted: {

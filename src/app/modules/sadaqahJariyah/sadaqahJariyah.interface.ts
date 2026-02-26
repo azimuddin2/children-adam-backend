@@ -1,4 +1,5 @@
 import { Types } from 'mongoose';
+import { TSadaqahJariyahDonations } from '../sadaqahJariyahDonations/sadaqahJariyahDonations.interface';
 
 export type TImage = {
   url: string;
@@ -16,7 +17,7 @@ export type TSadaqahJariyah = {
   images: TImage[];
   fullDescription: string;
 
-  donations: Types.ObjectId[] | string[];
+  donations: TSadaqahJariyahDonations[] | Types.ObjectId[] | string[];
 
   isDeleted: boolean;
   createdAt?: string;
