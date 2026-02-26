@@ -77,7 +77,15 @@ const createTopAppealsIntoDB = async (
 
 const getAllTopAppealsFromDB = async (query: Record<string, unknown>) => {
   const topAppealsQuery = new QueryBuilder(
-    TopAppeals.find({ isDeleted: false }).populate('topAppealsCategory'),
+    TopAppeals.find({ isDeleted: false })
+      .populate({
+        path: 'topAppealsCategory',
+        match: { isDeleted: false },
+      })
+      .populate({
+        path: 'donations',
+        match: { isDeleted: false },
+      }),
     query,
   )
     .search(topAppealsSearchableFields)
@@ -93,7 +101,15 @@ const getAllTopAppealsFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getTopAppealsByIdFromDB = async (id: string) => {
-  const result = await TopAppeals.findById(id);
+  const result = await TopAppeals.findById(id)
+    .populate({
+      path: 'topAppealsCategory',
+      match: { isDeleted: false },
+    })
+    .populate({
+      path: 'donations',
+      match: { isDeleted: false },
+    });
 
   if (!result) {
     throw new AppError(404, 'This top appeals not found');

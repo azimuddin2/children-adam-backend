@@ -70,7 +70,10 @@ const getAllSadaqahJariyahFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getSadaqahJariyahByIdFromDB = async (id: string) => {
-  const result = await SadaqahJariyah.findById(id);
+  const result = await SadaqahJariyah.findById(id).populate({
+    path: 'donations',
+    match: { isDeleted: false },
+  });
 
   if (!result) {
     throw new AppError(404, 'This sadaqah jariyah not found');

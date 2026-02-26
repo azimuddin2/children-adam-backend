@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { TTopAppealsCategory } from '../topAppealsCategory/topAppealsCategory.interface';
+import { TTopAppealsDonations } from '../topAppealsDonations/topAppealsDonations.interface';
 
 export type TImage = {
   url: string;
@@ -18,7 +19,7 @@ export type TTopAppeals = {
   images: TImage[];
   fullDescription: string;
 
-  donations: Types.ObjectId[] | string[];
+  donations: TTopAppealsDonations[] | Types.ObjectId[] | string[];
 
   isDeleted: boolean;
 };

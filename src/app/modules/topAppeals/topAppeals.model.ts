@@ -44,7 +44,7 @@ const TopAppealsSchema = new Schema<TTopAppeals>(
     donations: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Donations',
+        ref: 'TopAppealsDonations',
       },
     ],
     isDeleted: {

@@ -94,7 +94,7 @@ const getAllDonationsSubcategoryFromDB = async (
     DonationsSubcategory.find({ isDeleted: false })
       .populate({
         path: 'donationsCategory',
-        match: { isDeleted: false }, // শুধু isDeleted: false category load হবে
+        match: { isDeleted: false },
       })
       .populate({
         path: 'donations',
@@ -116,8 +116,14 @@ const getAllDonationsSubcategoryFromDB = async (
 
 const getDonationsSubcategoryByIdFromDB = async (id: string) => {
   const result = await DonationsSubcategory.findById(id)
-    .populate('donationsCategory')
-    .populate('donations');
+    .populate({
+      path: 'donationsCategory',
+      match: { isDeleted: false },
+    })
+    .populate({
+      path: 'donations',
+      match: { isDeleted: false },
+    });
 
   if (!result) {
     throw new AppError(404, 'This subcategory not found');
