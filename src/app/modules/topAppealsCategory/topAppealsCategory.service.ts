@@ -24,14 +24,20 @@ const createTopAppealsCategoryIntoDB = async (payload: TTopAppealsCategory) => {
 
 const getAllTopAppealsCategoryFromDB = async () => {
   const result = await TopAppealsCategory.find({ isDeleted: false })
-    .populate('topAppeals')
+    .populate({
+      path: 'topAppeals',
+      match: { isDeleted: false },
+    })
     .sort({ createdAt: -1 });
 
   return result;
 };
 
 const getTopAppealsCategoryByIdFromDB = async (id: string) => {
-  const result = await TopAppealsCategory.findById(id).populate('topAppeals');
+  const result = await TopAppealsCategory.findById(id).populate({
+    path: 'topAppeals',
+    match: { isDeleted: false },
+  });
 
   if (!result) {
     throw new AppError(404, 'This top appeals category not found');

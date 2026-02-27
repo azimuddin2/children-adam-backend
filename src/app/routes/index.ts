@@ -19,6 +19,7 @@ import { TopAppealsCategoryRoutes } from '../modules/topAppealsCategory/topAppea
 import { MonthlyDonationsRoutes } from '../modules/monthlyDonations/monthlyDonations.route';
 import { SadaqahJariyahDonationsRoutes } from '../modules/sadaqahJariyahDonations/sadaqahJariyahDonations.route';
 import { TopAppealsDonationsRoutes } from '../modules/topAppealsDonations/topAppealsDonations.route';
+import { CartRoutes } from '../modules/cart/cart.route';
 
 const router = Router();
 
@@ -90,6 +91,10 @@ const moduleRoutes = [
   {
     path: '/top-appeals-donations',
     route: TopAppealsDonationsRoutes,
+  },
+  {
+    path: '/carts',
+    route: CartRoutes,
   },
   // TODO:
   {
