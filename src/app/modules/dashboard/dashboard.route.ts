@@ -4,22 +4,18 @@ import auth from '../../middlewares/auth';
 
 const router = Router();
 
+router.get('/stats', auth('admin'), DashboardControllers.getDashboardStats);
+
 router.get(
-  '/overview-stats',
+  '/earnings-overview',
   auth('admin'),
-  DashboardControllers.getOverviewStats,
+  DashboardControllers.getEarningsOverview,
 );
 
 router.get(
-  '/request-stats',
+  '/user-overview',
   auth('admin'),
-  DashboardControllers.getRequestStats,
-);
-
-router.get(
-  '/earnings-stats',
-  auth('admin'),
-  DashboardControllers.getEarningsStats,
+  DashboardControllers.getUserOverview,
 );
 
 export const DashboardRoutes = router;

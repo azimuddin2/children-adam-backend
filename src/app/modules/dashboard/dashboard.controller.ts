@@ -1,9 +1,10 @@
+import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { DashboardService } from './dashboard.service';
 
-const getOverviewStats = catchAsync(async (req, res) => {
-  const result = await DashboardService.getOverviewStatsFromDB();
+const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
+  const result = await DashboardService.getDashboardStatsFromDB();
 
   sendResponse(res, {
     statusCode: 200,
@@ -13,30 +14,32 @@ const getOverviewStats = catchAsync(async (req, res) => {
   });
 });
 
-const getRequestStats = catchAsync(async (req, res) => {
-  const result = await DashboardService.getRequestStatsFromDB();
+const getEarningsOverview = catchAsync(async (req: Request, res: Response) => {
+  const { year } = req.query;
+  const result = await DashboardService.getEarningsOverviewFromDB(Number(year));
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Admin Dashboard Stats retrieved successfully',
+    message: 'Admin Dashboard Earnings Overview retrieved successfully',
     data: result,
   });
 });
 
-const getEarningsStats = catchAsync(async (req, res) => {
-  const result = await DashboardService.getEarningsStatsFromDB();
+const getUserOverview = catchAsync(async (req: Request, res: Response) => {
+  const { year } = req.query;
+  const result = await DashboardService.getUserOverviewFromDB(Number(year));
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Earnings Stats retrieved successfully',
+    message: 'Admin Dashboard User Overview retrieved successfully',
     data: result,
   });
 });
 
 export const DashboardControllers = {
-  getOverviewStats,
-  getRequestStats,
-  getEarningsStats,
+  getDashboardStats,
+  getEarningsOverview,
+  getUserOverview,
 };

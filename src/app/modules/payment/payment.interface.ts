@@ -7,13 +7,13 @@ export type TPaymentType = 'deposit'; // future: 'full', 'withdrawal'
 
 export type TPayment = {
   user: Types.ObjectId | TUser;
-  order: Types.ObjectId | TOrder; // reference to Order
+  order: Types.ObjectId | TOrder;
 
-  type: TPaymentType; // deposit only (MVP)
+  type: TPaymentType;
   status: TPaymentStatus;
   trnId: string;
-  price: number; // total deposit (ex: 10)
-  stripeSessionId?: string; // ✅ add
+  price: number;
+  stripeSessionId?: string;
   paymentIntentId?: string;
   isPaid: boolean;
   isDeleted: boolean;

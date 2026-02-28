@@ -1,235 +1,165 @@
-// import { Payment } from '../payment/payment.model';
-// import { User } from '../user/user.model';
-// import { TEarningRange } from './dashboard.interface';
-// import { getDateRange } from './dashboard.utils';
+import { Payment } from '../payment/payment.model';
+import { User } from '../user/user.model';
 
-// const getOverviewStatsFromDB = async (
-//   earningRange: TEarningRange = 'weekly',
-// ) => {
-//   // 🔹 Today range
-//   const now = new Date();
-//   const startOfDay = new Date(
-//     now.getFullYear(),
-//     now.getMonth(),
-//     now.getDate(),
-//     0,
-//     0,
-//     0,
-//     0,
-//   );
-//   const endOfDay = new Date(
-//     now.getFullYear(),
-//     now.getMonth(),
-//     now.getDate(),
-//     23,
-//     59,
-//     59,
-//     999,
-//   );
+const getDashboardStatsFromDB = async () => {
+  const [totalUsers, activeUsers, totalDonationsResult] = await Promise.all([
+    // Total registered users
+    User.countDocuments({ isDeleted: false }),
 
-//   // 🔹 Earnings range (weekly / monthly / yearly)
-//   const { start, end } = getDateRange(earningRange);
+    // Active users
+    User.countDocuments({
+      isDeleted: false,
+      status: 'confirmed',
+    }),
 
-//   const [
-//     totalUsers,
-//     todayBookings,
-//     earningsResult,
-//     ownerRequests,
-//     freelancerRequests,
-//   ] = await Promise.all([
-//     // Total Users
-//     User.countDocuments({ isDeleted: false }),
+    // Total donations — all paid payments
+    Payment.aggregate([
+      {
+        $match: {
+          isDeleted: false,
+          isPaid: true,
+          status: 'paid',
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$price' },
+        },
+      },
+    ]),
+  ]);
 
-//     // Today Bookings
-//     Booking.countDocuments({
-//       isDeleted: false,
-//       createdAt: { $gte: startOfDay, $lte: endOfDay },
-//     }),
+  return {
+    totalUsers,
+    activeUsers,
+    totalDonations: totalDonationsResult[0]?.total || 0,
+  };
+};
 
-//     // Earnings (Admin revenue only)
-//     Payment.aggregate([
-//       {
-//         $match: {
-//           isDeleted: false,
-//           isPaid: true,
-//           createdAt: { $gte: start, $lte: end },
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: null,
-//           totalEarnings: { $sum: '$adminAmount' },
-//         },
-//       },
-//     ]),
+const getEarningsOverviewFromDB = async (year?: number) => {
+  // Use provided year or default to current year
+  const targetYear = year || new Date().getFullYear();
 
-//     // Registration Requests
-//     OwnerRegistration.countDocuments({ status: 'pending' }),
-//     FreelancerRegistration.countDocuments({ status: 'pending' }),
-//   ]);
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
-//   return {
-//     totalUsers,
-//     todayBookings,
-//     totalEarnings: earningsResult[0]?.totalEarnings || 0,
-//     registrationRequests: {
-//       owner: ownerRequests,
-//       freelancer: freelancerRequests,
-//       total: ownerRequests + freelancerRequests,
-//     },
-//   };
-// };
+  const earningsResult = await Payment.aggregate([
+    {
+      $match: {
+        isDeleted: false,
+        isPaid: true,
+        status: 'paid',
+        createdAt: {
+          $gte: new Date(`${targetYear}-01-01`),
+          $lte: new Date(`${targetYear}-12-31T23:59:59.999Z`),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        total: { $sum: '$price' },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
 
-// const getRequestStatsFromDB = async () => {
-//   // 1. Define Date Ranges
-//   const now = new Date();
-//   const todayStart = new Date(now.setHours(0, 0, 0, 0));
-//   const todayEnd = new Date(now.setHours(23, 59, 59, 999));
+  const monthlyEarnings = monthNames.map((month, index) => {
+    const found = earningsResult.find((item) => item._id === index + 1);
+    return {
+      month,
+      total: found?.total || 0,
+    };
+  });
 
-//   const yesterdayStart = new Date(new Date().setDate(now.getDate() - 1));
-//   yesterdayStart.setHours(0, 0, 0, 0);
-//   const yesterdayEnd = new Date(new Date().setDate(now.getDate() - 1));
-//   yesterdayEnd.setHours(23, 59, 59, 999);
+  const yearlyTotal = monthlyEarnings.reduce(
+    (acc, item) => acc + item.total,
+    0,
+  );
 
-//   // 🔹 Helper function to calculate percentage change
-//   const calculatePercentage = (current: number, previous: number) => {
-//     if (previous === 0) return current > 0 ? 100 : 0;
-//     const percent = ((current - previous) / previous) * 100;
-//     return Number(percent.toFixed(2)); // Returns 15.03 format
-//   };
+  return {
+    year: targetYear,
+    yearlyTotal,
+    monthlyEarnings,
+  };
+};
 
-//   // 🔹 Helper to get counts for both collections (Owner + Freelancer)
-//   const getCombinedCounts = async (filter: any) => {
-//     const ownerCount = await OwnerRegistration.countDocuments({
-//       isDeleted: false,
-//       ...filter,
-//     });
-//     const freelancerCount = await FreelancerRegistration.countDocuments({
-//       isDeleted: false,
-//       ...filter,
-//     });
-//     return ownerCount + freelancerCount;
-//   };
+const getUserOverviewFromDB = async (year?: number) => {
+  const targetYear = year || new Date().getFullYear();
 
-//   // ==========================================
-//   // 1. TOTAL REQUESTS (All Time)
-//   // ==========================================
-//   const totalRequestsCount = await getCombinedCounts({});
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
-//   // To get growth for Total, we compare with Total count 30 days ago (or yesterday)
-//   // Here assuming growth compared to previous month for "Total"
-//   const lastMonthDate = new Date();
-//   lastMonthDate.setDate(lastMonthDate.getDate() - 30);
-//   const totalRequestsLastMonth = await getCombinedCounts({
-//     createdAt: { $lte: lastMonthDate },
-//   });
+  const usersResult = await User.aggregate([
+    // Match users for target year
+    {
+      $match: {
+        isDeleted: false,
+        createdAt: {
+          $gte: new Date(`${targetYear}-01-01`),
+          $lte: new Date(`${targetYear}-12-31T23:59:59.999Z`),
+        },
+      },
+    },
 
-//   const totalRequestsGrowth = calculatePercentage(
-//     totalRequestsCount,
-//     totalRequestsLastMonth,
-//   );
+    // Group by month
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        total: { $sum: 1 },
+      },
+    },
 
-//   // ==========================================
-//   // 2. PENDING REQUESTS
-//   // ==========================================
-//   const pendingRequestsCount = await getCombinedCounts({
-//     approvalStatus: 'pending',
-//   });
+    // Sort by month
+    { $sort: { _id: 1 } },
+  ]);
 
-//   // For Pending Growth, we compare "New Pending Requests Today" vs "Yesterday"
-//   // (Because we don't track historical status snapshots easily)
-//   const pendingToday = await getCombinedCounts({
-//     approvalStatus: 'pending',
-//     createdAt: { $gte: todayStart, $lte: todayEnd },
-//   });
-//   const pendingYesterday = await getCombinedCounts({
-//     approvalStatus: 'pending',
-//     createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd },
-//   });
+  // Fill missing months with 0
+  const monthlyUsers = monthNames.map((month, index) => {
+    const found = usersResult.find((item) => item._id === index + 1);
+    return {
+      month,
+      total: found?.total || 0,
+    };
+  });
 
-//   const pendingRequestsGrowth = calculatePercentage(
-//     pendingToday,
-//     pendingYesterday,
-//   );
+  // Yearly total
+  const yearlyTotal = monthlyUsers.reduce((acc, item) => acc + item.total, 0);
 
-//   // ==========================================
-//   // 3. TODAY REQUESTS
-//   // ==========================================
-//   const todayRequestsCount = await getCombinedCounts({
-//     createdAt: { $gte: todayStart, $lte: todayEnd },
-//   });
+  return {
+    year: targetYear,
+    yearlyTotal,
+    monthlyUsers,
+  };
+};
 
-//   const yesterdayRequestsCount = await getCombinedCounts({
-//     createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd },
-//   });
-
-//   const todayRequestsGrowth = calculatePercentage(
-//     todayRequestsCount,
-//     yesterdayRequestsCount,
-//   );
-
-//   // 🔹 FINAL RETURN
-//   return {
-//     stats: {
-//       totalRequest: {
-//         count: totalRequestsCount,
-//         growth: totalRequestsGrowth, // e.g., 15.03
-//       },
-//       pendingRequest: {
-//         count: pendingRequestsCount,
-//         growth: pendingRequestsGrowth, // e.g., 15.03
-//       },
-//       todayRequest: {
-//         count: todayRequestsCount,
-//         growth: todayRequestsGrowth, // e.g., 15.03
-//       },
-//     },
-//   };
-// };
-
-// const getEarningsStatsFromDB = async () => {
-//   const start = new Date();
-//   start.setHours(0, 0, 0, 0);
-//   const end = new Date();
-//   end.setHours(23, 59, 59, 999);
-
-//   const result = await Payment.aggregate([
-//     {
-//       $match: {
-//         isDeleted: false,
-//         isPaid: true,
-//       },
-//     },
-//     {
-//       $group: {
-//         _id: null,
-//         totalAdmin: { $sum: '$adminAmount' },
-//         todayAdmin: {
-//           $sum: {
-//             $cond: [
-//               {
-//                 $and: [
-//                   { $gte: ['$createdAt', start] },
-//                   { $lte: ['$createdAt', end] },
-//                 ],
-//               },
-//               '$adminAmount',
-//               0,
-//             ],
-//           },
-//         },
-//       },
-//     },
-//   ]);
-
-//   const totalEarning = result[0]?.totalAdmin || 0;
-//   const todayEarning = result[0]?.todayAdmin || 0;
-
-//   return { totalEarning, todayEarning };
-// };
-
-// export const DashboardService = {
-//   getOverviewStatsFromDB,
-//   getRequestStatsFromDB,
-//   getEarningsStatsFromDB,
-// };
+export const DashboardService = {
+  getDashboardStatsFromDB,
+  getEarningsOverviewFromDB,
+  getUserOverviewFromDB,
+};

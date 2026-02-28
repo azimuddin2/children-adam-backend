@@ -11,10 +11,12 @@ router.get('/cancel', PaymentController.cancelPayment);
 
 router.get('/transactions', auth('admin'), PaymentController.getAllPayments);
 
-// router.get(
-//   '/transactions/:id',
-//   auth('admin', 'sub-admin'),
-//   PaymentController.getPaymentById,
-// );
+router.get(
+  '/transactions/:id',
+  auth('admin'),
+  PaymentController.getPaymentById,
+);
+
+router.get('/stats', auth('admin'), PaymentController.getPaymentStats);
 
 export const PaymentRoutes = router;

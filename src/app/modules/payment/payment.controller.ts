@@ -386,10 +386,22 @@ const getPaymentById = catchAsync(async (req, res) => {
   });
 });
 
+const getPaymentStats = catchAsync(async (req, res) => {
+  const result = await PaymentService.getPaymentStatsFromDB();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Payment stats retrieved successfully',
+    data: result,
+  });
+});
+
 export const PaymentController = {
   createPayment,
   confirmPayment,
   cancelPayment,
   getAllPayments,
   getPaymentById,
+  getPaymentStats,
 };

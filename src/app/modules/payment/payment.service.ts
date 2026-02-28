@@ -265,12 +265,12 @@ const getAllPaymentsFormDB = async (query: Record<string, unknown>) => {
 const getPaymentByIdFromDB = async (id: string) => {
   const result = await Payment.findById(id)
     .populate({
-      path: 'customer',
-      select: 'fullName email phone streetAddress stripeCustomerId ',
+      path: 'user',
+      select: 'fullName email image',
     })
     .populate({
-      path: 'vendor',
-      select: 'fullName email phone streetAddress stripeAccountId',
+      path: 'order',
+      select: 'items',
     });
 
   if (!result) {
@@ -284,10 +284,64 @@ const getPaymentByIdFromDB = async (id: string) => {
   return result;
 };
 
+const getPaymentStatsFromDB = async () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const stats = await Payment.aggregate([
+    {
+      $match: {
+        isDeleted: false,
+        isPaid: true,
+        status: 'paid',
+      },
+    },
+    {
+      $lookup: {
+        from: 'orders',
+        localField: 'order',
+        foreignField: '_id',
+        as: 'order',
+      },
+    },
+    // ✅ সঠিক option
+    { $unwind: { path: '$order', preserveNullAndEmptyArrays: true } },
+    {
+      $facet: {
+        todayDonate: [
+          { $match: { createdAt: { $gte: today, $lt: tomorrow } } },
+          { $group: { _id: null, total: { $sum: '$price' } } },
+        ],
+        sadaqahDonate: [
+          { $match: { 'order.items.donationsType': 'Sadaqah' } },
+          { $group: { _id: null, total: { $sum: '$price' } } },
+        ],
+        zakatDonate: [
+          { $match: { 'order.items.donationsType': 'Zakat' } },
+          { $group: { _id: null, total: { $sum: '$price' } } },
+        ],
+        totalDonation: [{ $group: { _id: null, total: { $sum: '$price' } } }],
+      },
+    },
+  ]);
+
+  const result = stats[0];
+
+  return {
+    todayDonate: result.todayDonate[0]?.total || 0,
+    sadaqahDonate: result.sadaqahDonate[0]?.total || 0,
+    zakatDonate: result.zakatDonate[0]?.total || 0,
+    totalDonation: result.totalDonation[0]?.total || 0,
+  };
+};
+
 export const PaymentService = {
   createPayment,
   confirmPaymentIntoDB,
   cancelPaymentIntoDB,
   getAllPaymentsFormDB,
   getPaymentByIdFromDB,
+  getPaymentStatsFromDB,
 };

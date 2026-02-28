@@ -14,10 +14,13 @@ export enum PAYMENT_STATUS {
   cancelled = 'cancelled',
 }
 
+// payment.constant.ts
+
 export const paymentSearchableFields = [
   'trnId',
-  'type',
   'status',
-  'customerName',
-  'customerEmail',
+  'type',
+  'order.items.name', // ✅ item name দিয়ে search
+  'order.items.donationModel', // ✅ donation model দিয়ে search
+  'order.items.donationsType', // ✅ donation type দিয়ে search
 ];
