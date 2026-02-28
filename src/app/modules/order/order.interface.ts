@@ -1,10 +1,9 @@
-import { ObjectId } from 'mongoose';
-import { TCart } from '../cart/cart.interface';
+import { Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
 
 export type TOrder = {
-  user: TUser | ObjectId;
-  cart: TCart | ObjectId;
+  user: TUser | Types.ObjectId;
+  cart: Types.ObjectId;
   totalPrice: number;
   status: 'pending' | 'completed' | 'cancelled';
   isPaid: boolean;
