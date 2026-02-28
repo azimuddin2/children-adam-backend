@@ -1,283 +1,293 @@
-// import mongoose, { startSession } from 'mongoose';
-// import { Payment } from './payment.model';
-// import { User } from '../user/user.model';
-// import { Booking } from '../booking/booking.model';
-// import AppError from '../../errors/AppError';
-// import httpStatus from 'http-status';
-// import config from '../../config';
-// import StripeService from '../../class/stripe';
-// import { sendNotification } from '../notification/notification.utils';
-// import { TPayment } from './payment.interface';
-// import { generateTrxId } from './payment.utils';
-// import QueryBuilder from '../../builder/QueryBuilder';
-// import { paymentSearchableFields } from './payment.constant';
+import mongoose, { startSession } from 'mongoose';
+import { Payment } from './payment.model';
+import { User } from '../user/user.model';
+import AppError from '../../errors/AppError';
+import httpStatus from 'http-status';
+import config from '../../config';
+import StripeService from '../../class/stripe';
+import { sendNotification } from '../notification/notification.utils';
+import { TPayment } from './payment.interface';
+import { generateTrxId } from './payment.utils';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { paymentSearchableFields } from './payment.constant';
+import { OrderService } from '../order/order.service';
+import { Cart } from '../cart/cart.model';
+import { Order } from '../order/order.model';
 
-// const createPayment = async (payload: TPayment) => {
-//   const DEPOSIT_AMOUNT = 10; // USD Fixed deposit amount
+// ─────────────────────────────────────────────────────
+// CREATE PAYMENT
+// ─────────────────────────────────────────────────────
+const createPayment = async (userId: string, payload: any) => {
+  // Validate cartId format
+  if (!mongoose.Types.ObjectId.isValid(payload.cart)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid cart ID');
+  }
 
-//   const session = await startSession();
-//   session.startTransaction();
+  console.log('Creating payment for user:', userId, 'with cart:', payload.cart);
 
-//   try {
-//     const booking = await Booking.findById(payload.booking).lean().exec();
-//     if (!booking) {
-//       throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
-//     }
+  // Find user for Stripe customer
+  const user = await User.findOne({ _id: userId });
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
 
-//     // Prevent duplicate paid record
-//     const existingPaid = await Payment.findOne({
-//       booking: payload.booking,
-//       status: 'paid',
-//       isDeleted: false,
-//     });
-//     if (existingPaid) {
-//       throw new AppError(httpStatus.BAD_REQUEST, 'Deposit already paid');
-//     }
+  const session = await startSession();
+  session.startTransaction();
 
-//     const trnId = generateTrxId();
+  try {
+    // Step 1: Create order via OrderService
+    const { order, cart } = await OrderService.createOrderIntoDB(
+      userId,
+      { cart: payload.cart },
+      session,
+    );
 
-//     // Create pending payment
-//     const payment = await Payment.create(
-//       [
-//         {
-//           customer: booking.customer,
-//           vendor: booking.vendor,
-//           booking: payload.booking,
-//           customerName: booking.customerName || '',
-//           customerEmail: booking.email || '',
-//           type: 'deposit',
-//           trnId,
-//           price: DEPOSIT_AMOUNT,
-//           adminAmount: DEPOSIT_AMOUNT / 2, // MohTress $5
-//           vendorAmount: DEPOSIT_AMOUNT / 2, // Stylist $5
-//           status: 'pending',
-//           isPaid: false,
-//         },
-//       ],
-//       { session },
-//     ).then((docs) => docs[0]);
+    // Step 2: Create or reuse Stripe customer
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const stripeCustomer = await StripeService.createCustomer(
+        user.email!,
+        user.fullName!,
+      );
+      customerId = stripeCustomer!.id;
+      await User.findByIdAndUpdate(
+        userId,
+        { stripeCustomerId: customerId },
+        { session },
+      );
+    }
 
-//     if (!payment) {
-//       throw new AppError(httpStatus.BAD_REQUEST, 'Payment creation failed');
-//     }
+    // Step 3: Create pending payment record
+    const trnId = generateTrxId();
 
-//     // Create Stripe Customer if missing
-//     const customerUser = await User.findById(payment.customer).session(session);
-//     if (!customerUser) {
-//       throw new AppError(httpStatus.NOT_FOUND, 'User not found');
-//     }
+    const [payment] = await Payment.create(
+      [
+        {
+          user: new mongoose.Types.ObjectId(userId),
+          order: order._id,
+          type: 'deposit',
+          trnId,
+          price: cart.totalPrice,
+          status: 'pending',
+          isPaid: false,
+        },
+      ],
+      { session },
+    );
 
-//     let customerId = customerUser.stripeCustomerId;
-//     if (!customerId) {
-//       const customer = await StripeService.createCustomer(
-//         customerUser.email!,
-//         customerUser.fullName!,
-//       );
-//       customerId = customer.id;
-//       await User.findByIdAndUpdate(
-//         customerUser._id,
-//         { stripeCustomerId: customerId },
-//         { session },
-//       );
-//     }
+    if (!payment) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Payment creation failed');
+    }
 
-//     // Ensure stylist is onboarded
-//     const stylist = await User.findById(payment.vendor).session(session);
-//     if (!stylist || !stylist.stripeAccountId) {
-//       throw new AppError(
-//         httpStatus.BAD_REQUEST,
-//         'Stylist has not completed Stripe onboarding account setup',
-//       );
-//     }
+    // Step 4: Build Stripe line items
+    const lineItems = [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: { name: 'Donation Payment' },
+          unit_amount: Math.round(cart.totalPrice * 100),
+        },
+        quantity: 1,
+      },
+    ];
 
-//     // Stripe checkout session
-//     const lineItems = [
-//       {
-//         price_data: {
-//           currency: 'usd',
-//           product_data: { name: 'MohTress Deposit Payment' },
-//           unit_amount: Math.round(DEPOSIT_AMOUNT * 100),
-//         },
-//         quantity: 1,
-//       },
-//     ];
+    // Step 5: Success & cancel redirect URLs
+    const successUrl = `${config.server_url}/api/v1/payments/confirm?sessionId={CHECKOUT_SESSION_ID}&paymentId=${payment._id}`;
+    const cancelUrl = `${config.server_url}/api/v1/payments/cancel?paymentId=${payment._id}`;
 
-//     const successUrl = `${config.server_url}/api/v1/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${payment._id}`;
-//     const cancelUrl = `${config.server_url}/api/v1/payments/cancel?paymentId=${payment._id}`;
+    // Step 6: Create Stripe checkout session — normal payment
+    const checkoutSession = await StripeService.getCheckoutSession(
+      lineItems,
+      successUrl,
+      cancelUrl,
+      customerId,
+      'usd',
+      '',
+    );
 
-//     const checkoutSession = await StripeService.getCheckoutSession(
-//       lineItems,
-//       successUrl,
-//       cancelUrl,
-//       customerId,
-//       'usd',
-//       stylist.stripeAccountId, // auto-split to stylist
-//     );
+    // Step 7: Save Stripe session ID to payment record
+    payment.stripeSessionId = checkoutSession!.id;
+    await payment.save({ session });
 
-//     payment.stripeSessionId = checkoutSession.id;
-//     await payment.save({ session });
+    // Step 8: Clear cart after order + payment created
+    await Cart.findOneAndUpdate(
+      { _id: payload.cart },
+      { $set: { items: [], subTotal: 0, totalPrice: 0 } },
+      { new: true, session },
+    );
 
-//     await session.commitTransaction();
-//     return checkoutSession.url;
-//   } catch (error) {
-//     await session.abortTransaction();
-//     throw error;
-//   } finally {
-//     session.endSession();
-//   }
-// };
+    await session.commitTransaction();
+    return { url: checkoutSession!.url };
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
 
-// const confirmPayment = async (query: {
-//   sessionId: string;
-//   paymentId: string;
-// }) => {
-//   const { sessionId, paymentId } = query;
-//   const session = await startSession();
+// ─────────────────────────────────────────────────────
+// CONFIRM PAYMENT — Stripe success redirect
+// ─────────────────────────────────────────────────────
+const confirmPaymentIntoDB = async (query: {
+  sessionId: string;
+  paymentId: string;
+}) => {
+  const { sessionId, paymentId } = query;
 
-//   try {
-//     const paymentSession = await StripeService.getPaymentSession(sessionId);
-//     const isPaid = await StripeService.isPaymentSuccess(sessionId);
-//     if (!isPaid)
-//       throw new AppError(httpStatus.BAD_REQUEST, 'Payment not completed');
+  // Validate paymentId format
+  if (!mongoose.Types.ObjectId.isValid(paymentId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid payment ID');
+  }
 
-//     session.startTransaction();
+  // Check Stripe payment success
+  const isPaid = await StripeService.isPaymentSuccess(sessionId);
+  if (!isPaid) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Payment not completed');
+  }
 
-//     const payment = await Payment.findByIdAndUpdate(
-//       paymentId,
-//       {
-//         status: 'paid',
-//         isPaid: true,
-//         paymentIntentId: paymentSession.payment_intent,
-//       },
-//       { new: true, session },
-//     )
-//       .populate('customer')
-//       .populate('vendor');
+  // Get Stripe session details
+  const paymentSession = await StripeService.getPaymentSession(sessionId);
 
-//     if (!payment) throw new AppError(httpStatus.NOT_FOUND, 'Payment not found');
+  const session = await startSession();
+  session.startTransaction();
 
-//     const booking = await Booking.findByIdAndUpdate(
-//       payment.booking,
-//       { status: 'pending', isPaid: true },
-//       { new: true, session },
-//     );
+  try {
+    // Update payment — status: paid
+    const payment = await Payment.findByIdAndUpdate(
+      paymentId,
+      {
+        status: 'paid',
+        isPaid: true,
+        paymentIntentId: paymentSession!.payment_intent,
+      },
+      { new: true, session },
+    );
 
-//     if (!booking) throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
+    if (!payment) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Payment not found');
+    }
 
-//     // Update vendor balance
-//     const vendor = await User.findByIdAndUpdate(
-//       payment.vendor,
-//       { $inc: { balance: payment.vendorAmount } },
-//       { session },
-//     );
+    // Update order — status: completed
+    const order = await Order.findByIdAndUpdate(
+      payment.order,
+      { status: 'completed', isPaid: true },
+      { new: true, session },
+    );
 
-//     if (vendor?.fcmToken) {
-//       sendNotification([vendor.fcmToken], {
-//         title: 'Payment successful',
-//         message: `Your deposit has been received!`,
-//         receiver: vendor._id as any,
-//         receiverEmail: vendor.email,
-//         receiverRole: vendor.role as string,
-//         sender: vendor._id as any,
-//         type: 'payment',
-//       });
-//     }
+    if (!order) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
+    }
 
-//     await session.commitTransaction();
-//     return { message: 'Deposit confirmed successfully', payment, booking };
-//   } catch (error: any) {
-//     await session.abortTransaction();
-//     try {
-//       await StripeService.refund(sessionId);
-//     } catch (e: any) {
-//       console.error('Refund failed', e.message);
-//     }
-//     throw new AppError(httpStatus.BAD_GATEWAY, error.message);
-//   } finally {
-//     session.endSession();
-//   }
-// };
+    await session.commitTransaction();
+    return { message: 'Payment confirmed successfully', payment, order };
+  } catch (error) {
+    await session.abortTransaction();
 
-// const cancelPayment = async (paymentId: string) => {
-//   if (!paymentId || !mongoose.Types.ObjectId.isValid(paymentId))
-//     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid paymentId');
+    // Refund if something goes wrong after payment
+    try {
+      await StripeService.refund(sessionId);
+    } catch (refundError: any) {
+      console.error('Refund failed:', refundError.message);
+    }
 
-//   const session = await startSession();
-//   session.startTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
 
-//   try {
-//     const payment = await Payment.findById(paymentId).session(session);
-//     if (!payment) throw new AppError(httpStatus.NOT_FOUND, 'Payment not found');
-//     if (payment.status === 'paid')
-//       throw new AppError(
-//         httpStatus.BAD_REQUEST,
-//         'Cannot cancel a paid deposit',
-//       );
+// ─────────────────────────────────────────────────────
+// CANCEL PAYMENT — Stripe cancel redirect
+// ─────────────────────────────────────────────────────
+const cancelPaymentIntoDB = async (paymentId: string) => {
+  // Validate paymentId format
+  if (!mongoose.Types.ObjectId.isValid(paymentId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid payment ID');
+  }
 
-//     payment.status = 'cancelled';
-//     await payment.save({ session });
+  const session = await startSession();
+  session.startTransaction();
 
-//     await session.commitTransaction();
-//     return payment;
-//   } catch (error) {
-//     await session.abortTransaction();
-//     throw error;
-//   } finally {
-//     session.endSession();
-//   }
-// };
+  try {
+    const payment = await Payment.findById(paymentId).session(session);
 
-// const getAllPaymentsFormDB = async (query: Record<string, unknown>) => {
-//   const paymentQuery = new QueryBuilder(
-//     Payment.find({ isDeleted: false, isPaid: true, status: 'paid' })
-//       .populate({
-//         path: 'customer',
-//         select: 'fullName email phone streetAddress stripeCustomerId ',
-//       })
-//       .populate({
-//         path: 'vendor',
-//         select: 'fullName email phone streetAddress stripeAccountId',
-//       }),
-//     query,
-//   )
-//     .search(paymentSearchableFields)
-//     .filter()
-//     .sort()
-//     .paginate()
-//     .fields();
+    if (!payment) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Payment not found');
+    }
 
-//   const meta = await paymentQuery.countTotal();
-//   const data = await paymentQuery.modelQuery;
+    // Already paid payment cancel করা যাবে না
+    if (payment.status === 'paid') {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Cannot cancel a paid payment',
+      );
+    }
 
-//   return { meta, data };
-// };
+    payment.status = 'cancelled';
+    await payment.save({ session });
 
-// const getPaymentByIdFromDB = async (id: string) => {
-//   const result = await Payment.findById(id)
-//     .populate({
-//       path: 'customer',
-//       select: 'fullName email phone streetAddress stripeCustomerId ',
-//     })
-//     .populate({
-//       path: 'vendor',
-//       select: 'fullName email phone streetAddress stripeAccountId',
-//     });
+    await session.commitTransaction();
+    return { message: 'Payment cancelled successfully', payment };
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
 
-//   if (!result) {
-//     throw new AppError(404, 'This payment transaction not found');
-//   }
+const getAllPaymentsFormDB = async (query: Record<string, unknown>) => {
+  const paymentQuery = new QueryBuilder(
+    Payment.find({ isDeleted: false, isPaid: true, status: 'paid' })
+      .populate({
+        path: 'user',
+        select: 'fullName email image',
+      })
+      .populate({
+        path: 'order',
+        select: 'items',
+      }),
+    query,
+  )
+    .search(paymentSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
-//   if (result.isDeleted) {
-//     throw new AppError(400, 'This payment transaction has been deleted');
-//   }
+  const meta = await paymentQuery.countTotal();
+  const data = await paymentQuery.modelQuery;
 
-//   return result;
-// };
+  return { meta, data };
+};
 
-// export const PaymentService = {
-//   createPayment,
-//   confirmPayment,
-//   cancelPayment,
-//   getAllPaymentsFormDB,
-//   getPaymentByIdFromDB,
-// };
+const getPaymentByIdFromDB = async (id: string) => {
+  const result = await Payment.findById(id)
+    .populate({
+      path: 'customer',
+      select: 'fullName email phone streetAddress stripeCustomerId ',
+    })
+    .populate({
+      path: 'vendor',
+      select: 'fullName email phone streetAddress stripeAccountId',
+    });
+
+  if (!result) {
+    throw new AppError(404, 'This payment transaction not found');
+  }
+
+  if (result.isDeleted) {
+    throw new AppError(400, 'This payment transaction has been deleted');
+  }
+
+  return result;
+};
+
+export const PaymentService = {
+  createPayment,
+  confirmPaymentIntoDB,
+  cancelPaymentIntoDB,
+  getAllPaymentsFormDB,
+  getPaymentByIdFromDB,
+};

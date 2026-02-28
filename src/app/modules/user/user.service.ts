@@ -169,30 +169,58 @@ const getUserProfileFromDB = async (email: string) => {
   return result;
 };
 
-const updateUserProfileIntoDB = async (email: string, payload: TUser) => {
-  const existingUser = await User.findOne({ email });
+const updateUserProfileIntoDB = async (
+  email: string,
+  payload: Partial<TUser>,
+  file?: Express.Multer.File,
+) => {
+  // 🔍 Step 1: Check if user exists & get email
+  const existingUser = await User.findOne({ email }).select('userId image');
   if (!existingUser) {
     throw new AppError(404, 'User not found');
   }
 
-  if (existingUser?.isDeleted === true) {
-    throw new AppError(403, 'This user account is deleted!');
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 📸 Step 2: Handle image upload
+    if (file) {
+      const uploadedUrl = await uploadToS3({
+        file,
+        fileName: `images/user/profile/${Date.now()}-${Math.floor(
+          1000 + Math.random() * 9000,
+        )}`,
+      });
+
+      // 🧹 Delete old image if exists
+      if (existingUser.image) {
+        await deleteFromS3(existingUser.image);
+      }
+
+      payload.image = uploadedUrl as string;
+    }
+
+    // 📝 Step 3: Update linked User
+    const updatedUser = await User.findByIdAndUpdate(
+      existingUser._id, // ✅ correct user reference
+      { $set: { ...payload } },
+      { new: true, runValidators: true, session },
+    );
+    if (!updatedUser) {
+      throw new AppError(400, 'Failed to update user');
+    }
+
+    // ✅ Step 5: Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return updatedUser;
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw new AppError(500, error.message || 'User profile update failed');
   }
-
-  if (existingUser?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
-  }
-
-  const updatedUser = await User.findOneAndUpdate({ email: email }, payload, {
-    new: true,
-    runValidators: true,
-  }).select('-password');
-
-  if (!updatedUser) {
-    throw new AppError(400, 'profile update failed');
-  }
-
-  return updatedUser;
 };
 
 const updateUserPictureIntoDB = async (

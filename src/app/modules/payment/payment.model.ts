@@ -4,29 +4,16 @@ import { PaymentStatus } from './payment.constant';
 
 const paymentSchema = new Schema<TPayment>(
   {
-    customer: {
+    user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    vendor: {
+    order: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Order',
       required: true,
     },
-    customerName: {
-      type: String,
-      required: true,
-    },
-    customerEmail: {
-      type: String,
-      required: true,
-    },
-    // booking: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: 'Booking',
-    //   required: true,
-    // },
     type: {
       type: String,
       enum: ['deposit'],
@@ -37,31 +24,28 @@ const paymentSchema = new Schema<TPayment>(
       type: String,
       enum: {
         values: PaymentStatus,
-        message: '{VALUE} is not valid',
+        message: '{VALUE} is not a valid payment status',
       },
       default: 'pending',
     },
     trnId: {
       type: String,
       required: true,
-    },
-    adminAmount: {
-      type: Number,
-      required: true,
-    },
-    vendorAmount: {
-      type: Number,
-      required: true,
-    },
-    paymentIntentId: {
-      type: String,
-    },
-    stripeSessionId: {
-      type: String,
+      unique: true,
+      trim: true,
     },
     price: {
       type: Number,
       required: true,
+      min: 0,
+    },
+    stripeSessionId: {
+      type: String,
+      default: null,
+    },
+    paymentIntentId: {
+      type: String,
+      default: null,
     },
     isPaid: {
       type: Boolean,
@@ -74,17 +58,5 @@ const paymentSchema = new Schema<TPayment>(
   },
   { timestamps: true },
 );
-
-paymentSchema.pre('save', function (next) {
-  if (
-    this.isModified('price') ||
-    this.adminAmount == null ||
-    this.vendorAmount == null
-  ) {
-    this.adminAmount = Number(this.price) * 0.5; // 50% platform fee
-    this.vendorAmount = Number(this.price) * 0.5; // 50% stylist
-  }
-  next();
-});
 
 export const Payment = model<TPayment>('Payment', paymentSchema);

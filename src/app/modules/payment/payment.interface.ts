@@ -1,34 +1,20 @@
 import { Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
-// import { TBooking } from '../booking/booking.interface';
+import { TOrder } from '../order/order.interface';
 
 export type TPaymentStatus = 'pending' | 'paid' | 'refunded' | 'cancelled';
 export type TPaymentType = 'deposit'; // future: 'full', 'withdrawal'
 
 export type TPayment = {
-  customer: Types.ObjectId | TUser; // customer
-  vendor: Types.ObjectId | TUser; // stylist
-
-  customerName: string;
-  customerEmail: string;
-
-  // booking: Types.ObjectId | TBooking;
+  user: Types.ObjectId | TUser;
+  order: Types.ObjectId | TOrder; // reference to Order
 
   type: TPaymentType; // deposit only (MVP)
-
   status: TPaymentStatus;
-
   trnId: string;
-
-  // Amounts
   price: number; // total deposit (ex: 10)
-  adminAmount: number; // MohTress fee (ex: 5)
-  vendorAmount: number; // stylist amount (ex: 5)
-
-  // Stripe
-  paymentIntentId?: string; // optional (after success)
-  stripeSessionId?: string; // optional (recommended)
-
+  stripeSessionId?: string; // ✅ add
+  paymentIntentId?: string;
   isPaid: boolean;
   isDeleted: boolean;
   createdAt?: Date;

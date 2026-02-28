@@ -4,6 +4,7 @@ import { UserValidations } from './user.validation';
 import { UserControllers } from './user.controller';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
+import parseData from '../../middlewares/parseData';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -23,6 +24,8 @@ router.get('/:id', auth('admin', 'user'), UserControllers.getUserById);
 router.patch(
   '/profile',
   auth('admin', 'user'),
+  upload.single('image'),
+  parseData(),
   validateRequest(UserValidations.updateUserValidationSchema),
   UserControllers.updateUserProfile,
 );

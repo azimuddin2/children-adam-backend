@@ -5,7 +5,9 @@ import { PaymentService } from './payment.service';
 import dayjs from 'dayjs';
 
 const createPayment = catchAsync(async (req: Request, res: Response) => {
-  const url = await PaymentService.createPayment(req.body);
+  const userId = req.user?.userId;
+
+  const url = await PaymentService.createPayment(userId, req.body);
 
   sendResponse(res, {
     statusCode: 201,
@@ -23,7 +25,10 @@ const confirmPayment = catchAsync(async (req: Request, res: Response) => {
     paymentId: string;
   };
 
-  const result = await PaymentService.confirmPayment({ sessionId, paymentId });
+  const result = await PaymentService.confirmPaymentIntoDB({
+    sessionId,
+    paymentId,
+  });
 
   const date = dayjs(result.payment.createdAt).format('YYYY-MM-DD HH:mm:ss');
 
@@ -200,7 +205,7 @@ const cancelPayment = catchAsync(async (req: Request, res: Response) => {
   const { paymentId } = req.query as { paymentId?: string };
 
   if (paymentId) {
-    await PaymentService.cancelPayment(paymentId);
+    await PaymentService.cancelPaymentIntoDB(paymentId);
   }
 
   res.send(`

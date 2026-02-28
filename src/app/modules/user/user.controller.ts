@@ -53,7 +53,11 @@ const getUserProfile = catchAsync(async (req: Request, res: Response) => {
 
 const updateUserProfile = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.user;
-  const result = await UserServices.updateUserProfileIntoDB(email, req.body);
+  const result = await UserServices.updateUserProfileIntoDB(
+    email,
+    req.body,
+    req.file as any,
+  );
 
   sendResponse(res, {
     statusCode: 200,
