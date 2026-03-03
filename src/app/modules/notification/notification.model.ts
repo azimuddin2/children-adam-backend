@@ -19,7 +19,7 @@ const NotificationSchema = new Schema<INotification>(
     },
     receiverRole: {
       type: String,
-      enum: ['customer', 'admin', 'owner', 'freelancer'],
+      enum: ['user', 'admin'],
       required: true,
     },
     type: {

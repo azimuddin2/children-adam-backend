@@ -12,6 +12,12 @@ router.get('/cancel', PaymentController.cancelPayment);
 router.get('/transactions', auth('admin'), PaymentController.getAllPayments);
 
 router.get(
+  '/my-transactions-history',
+  auth('user'),
+  PaymentController.getPaymentsHistoryByUserId,
+);
+
+router.get(
   '/transactions/:id',
   auth('admin'),
   PaymentController.getPaymentById,

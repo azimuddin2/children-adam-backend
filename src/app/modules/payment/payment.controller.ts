@@ -397,6 +397,19 @@ const getPaymentStats = catchAsync(async (req, res) => {
   });
 });
 
+const getPaymentsHistoryByUserId = catchAsync(async (req, res) => {
+  const userId = req.user?.userId;
+
+  const result = await PaymentService.getPaymentsHistoryByUserIdFromDB(userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User payments retrieved successfully',
+    data: result,
+  });
+});
+
 export const PaymentController = {
   createPayment,
   confirmPayment,
@@ -404,4 +417,5 @@ export const PaymentController = {
   getAllPayments,
   getPaymentById,
   getPaymentStats,
+  getPaymentsHistoryByUserId,
 };

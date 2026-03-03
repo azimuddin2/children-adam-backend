@@ -17,6 +17,10 @@ const createPollIntoDB = async (payload: TPoll) => {
     throw new AppError(400, 'Poll startDate must be before endDate');
   }
 
+  if (!Array.isArray(payload.questions) || payload.questions.length !== 1) {
+    throw new AppError(400, 'Each poll can contain only one question.');
+  }
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -26,7 +30,7 @@ const createPollIntoDB = async (payload: TPoll) => {
   if (endDate < today) {
     throw new AppError(
       400,
-      'Cannot create poll! End date is already in the past.',
+      'Cannot create poll! End date is already in the past',
     );
   }
 

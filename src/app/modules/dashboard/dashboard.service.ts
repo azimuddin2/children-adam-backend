@@ -158,8 +158,83 @@ const getUserOverviewFromDB = async (year?: number) => {
   };
 };
 
+const getTrafficByLocationFromDB = async () => {
+  const result = await User.aggregate([
+    // Match active users with country
+    {
+      $match: {
+        isDeleted: false,
+        country: { $ne: null, $exists: true },
+      },
+    },
+
+    // Group by country
+    {
+      $group: {
+        _id: '$country',
+        count: { $sum: 1 },
+      },
+    },
+
+    { $sort: { count: -1 } },
+
+    {
+      $facet: {
+        topLocations: [{ $limit: 3 }],
+        totalCount: [
+          {
+            $group: {
+              _id: null,
+              total: { $sum: '$count' },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  const topLocations = result[0]?.topLocations || [];
+  const totalCount = result[0]?.totalCount[0]?.total || 0;
+
+  // Top 3 + Others calculate
+  const topTotal = topLocations.reduce(
+    (acc: number, item: any) => acc + item.count,
+    0,
+  );
+  const othersCount = totalCount - topTotal;
+
+  const locations = [
+    ...topLocations.map((item: any) => ({
+      location: item._id,
+      count: item.count,
+      percentage:
+        totalCount > 0
+          ? Math.round((item.count / totalCount) * 100 * 10) / 10
+          : 0,
+    })),
+    ...(othersCount > 0
+      ? [
+          {
+            location: 'Other',
+            count: othersCount,
+            percentage:
+              totalCount > 0
+                ? Math.round((othersCount / totalCount) * 100 * 10) / 10
+                : 0,
+          },
+        ]
+      : []),
+  ];
+
+  return {
+    totalUsers: totalCount,
+    locations,
+  };
+};
+
 export const DashboardService = {
   getDashboardStatsFromDB,
   getEarningsOverviewFromDB,
   getUserOverviewFromDB,
+  getTrafficByLocationFromDB,
 };

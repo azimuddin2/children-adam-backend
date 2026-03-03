@@ -15,6 +15,7 @@ export type TUser = {
   address: string;
   image: string | null;
   gender: TGender;
+  country: string;
 
   password: string;
   needsPasswordChange: boolean;

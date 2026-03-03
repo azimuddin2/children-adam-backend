@@ -38,8 +38,20 @@ const getUserOverview = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getTrafficByLocation = catchAsync(async (req: Request, res: Response) => {
+  const result = await DashboardService.getTrafficByLocationFromDB();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Admin Dashboard Traffic By Location retrieved successfully',
+    data: result,
+  });
+});
+
 export const DashboardControllers = {
   getDashboardStats,
   getEarningsOverview,
   getUserOverview,
+  getTrafficByLocation,
 };

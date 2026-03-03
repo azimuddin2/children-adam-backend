@@ -47,6 +47,12 @@ const userSchema = new Schema<TUser, UserModel>(
       trim: true,
       default: null,
     },
+    country: {
+      type: String,
+      required: false,
+      trim: true,
+      default: null,
+    },
     password: {
       type: String,
       required: [true, 'Password is required'],

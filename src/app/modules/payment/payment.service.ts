@@ -14,9 +14,6 @@ import { OrderService } from '../order/order.service';
 import { Cart } from '../cart/cart.model';
 import { Order } from '../order/order.model';
 
-// ─────────────────────────────────────────────────────
-// CREATE PAYMENT
-// ─────────────────────────────────────────────────────
 const createPayment = async (userId: string, payload: any) => {
   // Validate cartId format
   if (!mongoose.Types.ObjectId.isValid(payload.cart)) {
@@ -126,9 +123,6 @@ const createPayment = async (userId: string, payload: any) => {
   }
 };
 
-// ─────────────────────────────────────────────────────
-// CONFIRM PAYMENT — Stripe success redirect
-// ─────────────────────────────────────────────────────
 const confirmPaymentIntoDB = async (query: {
   sessionId: string;
   paymentId: string;
@@ -197,9 +191,6 @@ const confirmPaymentIntoDB = async (query: {
   }
 };
 
-// ─────────────────────────────────────────────────────
-// CANCEL PAYMENT — Stripe cancel redirect
-// ─────────────────────────────────────────────────────
 const cancelPaymentIntoDB = async (paymentId: string) => {
   // Validate paymentId format
   if (!mongoose.Types.ObjectId.isValid(paymentId)) {
@@ -337,6 +328,19 @@ const getPaymentStatsFromDB = async () => {
   };
 };
 
+const getPaymentsHistoryByUserIdFromDB = async (userId: string) => {
+  const payments = await Payment.find({
+    user: userId,
+    isDeleted: false,
+    isPaid: true,
+    status: 'paid',
+  })
+    .populate({ path: 'order', select: 'items' })
+    .sort({ createdAt: -1 });
+
+  return payments;
+};
+
 export const PaymentService = {
   createPayment,
   confirmPaymentIntoDB,
@@ -344,4 +348,5 @@ export const PaymentService = {
   getAllPaymentsFormDB,
   getPaymentByIdFromDB,
   getPaymentStatsFromDB,
+  getPaymentsHistoryByUserIdFromDB,
 };

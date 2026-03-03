@@ -18,4 +18,10 @@ router.get(
   DashboardControllers.getUserOverview,
 );
 
+router.get(
+  '/traffic-by-location',
+  auth('admin'),
+  DashboardControllers.getTrafficByLocation,
+);
+
 export const DashboardRoutes = router;

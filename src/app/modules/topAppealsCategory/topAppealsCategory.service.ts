@@ -27,6 +27,10 @@ const getAllTopAppealsCategoryFromDB = async () => {
     .populate({
       path: 'topAppeals',
       match: { isDeleted: false },
+      populate: {
+        path: 'donations',
+        match: { isDeleted: false },
+      },
     })
     .sort({ createdAt: -1 });
 
