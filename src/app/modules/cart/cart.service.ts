@@ -125,69 +125,130 @@ const incrementCartItemQuantityIntoDB = async (
   userId: string,
   itemId: string,
 ) => {
-  // Validate the format of the provided itemId
   if (!mongoose.Types.ObjectId.isValid(itemId)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid item ID');
   }
 
-  // Atomically increment quantity by 1 using $inc
+  const objectItemId = new mongoose.Types.ObjectId(itemId);
+
   const cart = await Cart.findOneAndUpdate(
     {
       userId,
-      'items._id': new mongoose.Types.ObjectId(itemId),
+      'items._id': objectItemId,
     },
-    { $inc: { 'items.$.quantity': 1 } },
-    { new: true },
+    {
+      $inc: {
+        'items.$.quantity': 1,
+        subTotal: 0, // temporary (we recalc below)
+        totalPrice: 0,
+      },
+    },
+    {
+      new: true,
+      projection: {
+        items: { $elemMatch: { _id: objectItemId } },
+        subTotal: 1,
+        totalPrice: 1,
+        updatedAt: 1,
+      },
+    },
   );
 
-  if (!cart) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Item not found in your cart');
+  if (!cart || !cart.items.length) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Item not found');
   }
 
-  // Recalculate subtotal + totalPrice after increment
-  await recalculateCart(cart);
-  return cart;
+  // manually update subtotal for that item
+  const updatedItem = cart.items[0];
+  updatedItem.subtotal = updatedItem.price * updatedItem.quantity;
+
+  // recalculate full cart total safely
+  const fullCart = await Cart.findOne({ userId });
+
+  if (!fullCart) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Cart not found');
+  }
+
+  fullCart.subTotal = fullCart.items.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
+  fullCart.totalPrice = fullCart.subTotal;
+
+  await fullCart.save();
+
+  return {
+    item: updatedItem,
+    subTotal: fullCart.subTotal,
+    totalPrice: fullCart.totalPrice,
+  };
 };
 
 const decrementCartItemQuantityIntoDB = async (
   userId: string,
   itemId: string,
 ) => {
-  // Validate the format of the provided itemId
-  if (!mongoose.Types.ObjectId.isValid(itemId)) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid item ID');
+  const isExist = await Cart.findOne({
+    userId,
+    'items._id': itemId,
+  });
+
+  if (!isExist) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Cart item not found');
   }
 
-  // Decrement only if quantity > 1 — prevents going below 1
-  let cart = await Cart.findOneAndUpdate(
+  const cart = await Cart.findOneAndUpdate(
     {
-      userId,
-      'items._id': new mongoose.Types.ObjectId(itemId),
-      'items.quantity': { $gt: 1 },
+      userId: userId,
+      'items._id': itemId,
     },
-    { $inc: { 'items.$.quantity': -1 } },
-    { new: true },
+    {
+      $inc: {
+        'items.$.quantity': -1,
+      },
+    },
+    {
+      new: true,
+    },
   );
 
   if (!cart) {
-    // quantity was 1 — remove item completely using $pull
-    cart = await Cart.findOneAndUpdate(
-      {
-        userId,
-        'items._id': new mongoose.Types.ObjectId(itemId),
+    throw new AppError(httpStatus.NOT_FOUND, 'Cart item not found');
+  }
+
+  // ⭐ Remove item if quantity <= 0
+  await Cart.updateOne(
+    {
+      userId: userId,
+      'items._id': itemId,
+      'items.quantity': { $lte: 0 },
+    },
+    {
+      $pull: {
+        items: { _id: itemId },
       },
-      { $pull: { items: { _id: itemId } } },
-      { new: true },
-    );
-  }
+    },
+  );
 
-  if (!cart) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Item not found in your cart');
-  }
+  const total = cart.items.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
 
-  // Recalculate subtotal + totalPrice after decrement
-  await recalculateCart(cart);
-  return cart;
+  cart.subTotal = total;
+  cart.totalPrice = total;
+
+  await cart.save();
+
+  const updatedItem = cart.items.find(
+    (item) => item._id?.toString() === itemId,
+  );
+
+  return {
+    item: updatedItem || { _id: itemId, removed: true },
+    subTotal: total,
+    totalPrice: total,
+  };
 };
 
 const removeItemFromCart = async (userId: string, itemId: string) => {

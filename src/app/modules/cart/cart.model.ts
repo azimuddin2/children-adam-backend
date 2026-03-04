@@ -76,13 +76,4 @@ const CartSchema = new Schema<TCart>(
   { timestamps: true },
 );
 
-CartSchema.pre('save', function (next) {
-  this.items.forEach((item) => {
-    item.subtotal = item.price * item.quantity;
-  });
-  this.subTotal = this.items.reduce((acc, item) => acc + item.subtotal, 0);
-  this.totalPrice = this.subTotal;
-  next();
-});
-
 export const Cart = model<TCart>('Cart', CartSchema);

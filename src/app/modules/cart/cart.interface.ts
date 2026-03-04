@@ -9,7 +9,7 @@ export type TDonationModelType =
   | 'SadaqahJariyah';
 
 export type TCartItem = {
-  _id?: mongoose.Types.ObjectId;
+  _id?: string;
 
   donationId: mongoose.Types.ObjectId;
   donationModel: TDonationModelType;

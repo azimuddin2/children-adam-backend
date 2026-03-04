@@ -29,8 +29,6 @@ const createPromotionIntoDB = async (payload: TPromotion) => {
   }
 
   const emailPromises = existingUsers.map((user) => {
-    const firstName = user.fullName ? user.fullName.split(' ')[0] : 'Member';
-
     return sendEmail(
       user.email,
       payload.title,
@@ -56,7 +54,7 @@ const createPromotionIntoDB = async (payload: TPromotion) => {
                 </tr>
                 <tr>
                   <td style="font-size: 16px; line-height: 1.8; color: #444; padding-bottom: 20px;">
-                    <p style="margin: 0; font-weight: bold; color: #000;">Assalamu Alaikum ${firstName},</p>
+                    <p style="margin: 0; font-weight: bold; color: #000;">Assalamu Alaikum ${user.fullName},</p>
                     <p style="margin: 15px 0 0 0;">
                        ${payload.message}
                     </p>
