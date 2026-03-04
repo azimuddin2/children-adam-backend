@@ -21,6 +21,7 @@ import { SadaqahJariyahDonationsRoutes } from '../modules/sadaqahJariyahDonation
 import { TopAppealsDonationsRoutes } from '../modules/topAppealsDonations/topAppealsDonations.route';
 import { CartRoutes } from '../modules/cart/cart.route';
 import { OrderRoutes } from '../modules/order/order.route';
+import { PromotionRoutes } from '../modules/promotion/promotion.route';
 
 const router = Router();
 
@@ -101,7 +102,6 @@ const moduleRoutes = [
     path: '/orders',
     route: OrderRoutes,
   },
-  // TODO:
   {
     path: '/payments',
     route: PaymentRoutes,
@@ -113,6 +113,10 @@ const moduleRoutes = [
   {
     path: '/notifications',
     route: NotificationRoutes,
+  },
+  {
+    path: '/promotions',
+    route: PromotionRoutes,
   },
 ];
 
