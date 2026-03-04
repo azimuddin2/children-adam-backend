@@ -50,6 +50,10 @@ const getAllDonationsCategoryFromDB = async (
     DonationsCategory.find({ isDeleted: false }).populate({
       path: 'donationsSubcategory',
       match: { isDeleted: false },
+      populate: {
+        path: 'donations',
+        match: { isDeleted: false },
+      },
     }),
     query,
   )

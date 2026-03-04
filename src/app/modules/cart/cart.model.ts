@@ -14,6 +14,9 @@ const CartItemSchema = new Schema<TCartItem>({
       'SadaqahJariyahDonations',
       'MonthlyDonations',
       'TopAppealsDonations',
+      'DonationsSubcategory',
+      'TopAppeals',
+      'SadaqahJariyah',
     ],
   },
   name: {
@@ -33,6 +36,10 @@ const CartItemSchema = new Schema<TCartItem>({
   donationsType: {
     type: String,
     required: true,
+  },
+  notes: {
+    type: String,
+    default: '',
   },
   quantity: {
     type: Number,

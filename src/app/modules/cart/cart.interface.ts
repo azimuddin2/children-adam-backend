@@ -3,16 +3,22 @@ import mongoose from 'mongoose';
 export type TDonationModelType =
   | 'SadaqahJariyahDonations'
   | 'MonthlyDonations'
-  | 'TopAppealsDonations';
+  | 'TopAppealsDonations'
+  | 'DonationsSubcategory'
+  | 'TopAppeals'
+  | 'SadaqahJariyah';
 
 export type TCartItem = {
   _id?: mongoose.Types.ObjectId;
+
   donationId: mongoose.Types.ObjectId;
   donationModel: TDonationModelType;
   name: string;
-  image?: string | null;
+  image: string | null;
   price: number;
   donationsType: string;
+  notes: string;
+
   quantity: number;
   subtotal: number;
 };
@@ -22,11 +28,6 @@ export type TCart = {
   items: TCartItem[];
   subTotal: number;
   totalPrice: number;
-};
-
-export type TAddToCartPayload = {
-  donationId: string;
-  donationModel: TDonationModelType;
 };
 
 export type TUpdateQuantityPayload = {

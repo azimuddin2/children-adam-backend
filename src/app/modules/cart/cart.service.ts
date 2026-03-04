@@ -3,7 +3,10 @@ import { Cart } from './cart.model';
 import { SadaqahJariyahDonations } from '../sadaqahJariyahDonations/sadaqahJariyahDonations.model';
 import { MonthlyDonations } from '../monthlyDonations/monthlyDonations.model';
 import { TopAppealsDonations } from '../topAppealsDonations/topAppealsDonations.model';
-import { TAddToCartPayload, TDonationModelType } from './cart.interface';
+import { TopAppeals } from '../topAppeals/topAppeals.model';
+import { DonationsSubcategory } from '../monthlyDonationSubcategory/monthlyDonationSubcategory.model';
+import { SadaqahJariyah } from '../sadaqahJariyah/sadaqahJariyah.model';
+import { TCartItem, TDonationModelType } from './cart.interface';
 import AppError from '../../errors/AppError';
 import httpStatus from 'http-status';
 import { recalculateCart } from './cart.utils';
@@ -12,6 +15,96 @@ const DonationModelMap: Record<TDonationModelType, mongoose.Model<any>> = {
   SadaqahJariyahDonations,
   MonthlyDonations,
   TopAppealsDonations,
+  DonationsSubcategory,
+  TopAppeals,
+  SadaqahJariyah,
+};
+
+const addToCartIntoDB = async (userId: string, payload: TCartItem) => {
+  const { donationId, donationModel, price } = payload;
+
+  if (!mongoose.Types.ObjectId.isValid(donationId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid donation ID');
+  }
+
+  const DonationModel = DonationModelMap[donationModel];
+
+  const donation = await DonationModel.findById(donationId);
+
+  if (!donation || donation.isDeleted) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Donation is not available');
+  }
+
+  /**
+   * ⭐ Step 1: Increase quantity if item exists
+   */
+  const cart = await Cart.findOneAndUpdate(
+    {
+      userId,
+      'items.donationId': donationId,
+      'items.donationModel': donationModel,
+    },
+    {
+      $inc: {
+        'items.$.quantity': 1,
+      },
+    },
+    { new: true },
+  );
+
+  /**
+   * ⭐ Step 2: If cart exists → update subtotal + totalPrice
+   */
+  if (cart) {
+    cart.items = cart.items.map((item) => {
+      if (
+        item.donationId.toString() === donationId.toString() &&
+        item.donationModel === donationModel
+      ) {
+        item.subtotal = item.price * item.quantity;
+      }
+
+      return item;
+    });
+
+    cart.totalPrice = cart.items.reduce((acc, item) => acc + item.subtotal, 0);
+
+    await cart.save();
+
+    return cart;
+  }
+
+  /**
+   * ⭐ Step 3: If item not exists → create new cart item
+   */
+  const newCart = await Cart.findOneAndUpdate(
+    { userId },
+    {
+      $setOnInsert: { userId },
+      $push: {
+        items: {
+          donationId,
+          donationModel,
+          name: payload.name,
+          image: payload.image ?? null,
+          price,
+          donationsType: payload.donationsType,
+          quantity: 1,
+          subtotal: price,
+        },
+      },
+    },
+    { new: true, upsert: true },
+  );
+
+  newCart.totalPrice = newCart.items.reduce(
+    (acc, item) => acc + item.subtotal,
+    0,
+  );
+
+  await newCart.save();
+
+  return newCart;
 };
 
 const getMyCartFromDB = async (userId: string) => {
@@ -25,64 +118,6 @@ const getMyCartFromDB = async (userId: string) => {
     },
   );
 
-  return cart;
-};
-
-const addToCartIntoDB = async (userId: string, payload: TAddToCartPayload) => {
-  const { donationId, donationModel } = payload;
-
-  // ✅ Step 1: donationId format validate
-  if (!mongoose.Types.ObjectId.isValid(donationId)) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid donation ID');
-  }
-
-  // ✅ Step 2: সঠিক model থেকে donation খোঁজা
-  const DonationModel = DonationModelMap[donationModel];
-  const donation = await DonationModel.findById(donationId);
-
-  if (!donation) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Donation not found');
-  }
-
-  if (donation.isDeleted) {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      'This donation is no longer available',
-    );
-  }
-
-  // ✅ Step 3: user এর cart খোঁজা, না থাকলে নতুন তৈরি
-  let cart = await Cart.findOne({ userId });
-  if (!cart) {
-    cart = new Cart({ userId, items: [] });
-  }
-
-  // ✅ Step 4: same item already cart এ আছে কিনা চেক
-  const existingItem = cart.items.find(
-    (item) =>
-      item.donationId.toString() === donationId &&
-      item.donationModel === donationModel,
-  );
-
-  if (existingItem) {
-    // বার বার click করলে quantity +1
-    existingItem.quantity += 1;
-  } else {
-    // প্রথমবার add হলে নতুন item push
-    cart.items.push({
-      donationId: donation._id,
-      donationModel,
-      name: donation.name,
-      image: donation.image ?? null,
-      price: donation.amount,
-      donationsType: donation.donationsType,
-      quantity: 1,
-      subtotal: 0, // pre-save hook এ calculate হবে
-    });
-  }
-
-  // ✅ Step 5: save — pre-save hook subtotal + totalPrice calculate করবে
-  await cart.save();
   return cart;
 };
 
