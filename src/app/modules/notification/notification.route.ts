@@ -7,34 +7,19 @@ const router = Router();
 
 router.get(
   '/',
-  auth(
-    USER_ROLE.customer,
-    USER_ROLE.owner,
-    USER_ROLE.freelancer,
-    USER_ROLE.admin,
-  ),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   NotificationController.getAllNotification,
 );
 
 router.put(
   '/make-read/:id',
-  auth(
-    USER_ROLE.customer,
-    USER_ROLE.owner,
-    USER_ROLE.freelancer,
-    USER_ROLE.admin,
-  ),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   NotificationController.makeRead,
 );
 
 router.put(
   '/make-read-all',
-  auth(
-    USER_ROLE.customer,
-    USER_ROLE.owner,
-    USER_ROLE.freelancer,
-    USER_ROLE.admin,
-  ),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   NotificationController.makeReadAll,
 );
 
@@ -46,12 +31,7 @@ router.get(
 
 router.post(
   '/push-notification',
-  auth(
-    USER_ROLE.customer,
-    USER_ROLE.owner,
-    USER_ROLE.freelancer,
-    USER_ROLE.admin,
-  ),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   NotificationController.pushNotificationUser,
 );
 

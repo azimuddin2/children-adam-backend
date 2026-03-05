@@ -19,6 +19,7 @@ import httpStatus from 'http-status';
 import { Login_With, USER_ROLE } from '../user/user.constant';
 import admin from '../../utils/firebase';
 import { OtpServices } from '../otp/otp.service';
+import { TUser } from '../user/user.interface';
 
 const loginUser = async (payload: TLoginUser) => {
   const user = await User.findOne({ email: payload.email });
@@ -42,6 +43,30 @@ const loginUser = async (payload: TLoginUser) => {
   );
   if (!isPasswordMatched) {
     throw new AppError(403, 'Password do not matched!');
+  }
+
+  // ✅ Save FCM token if provided
+  let updatedUser: TUser = user;
+
+  if (payload.fcmToken) {
+    updatedUser = (await User.findOneAndUpdate(
+      { email: payload.email },
+      { fcmToken: payload.fcmToken.trim() },
+      { new: true, runValidators: true },
+    )) as TUser;
+  }
+
+  // ✅ Send login notification if FCM token exists and notifications enabled
+  const tokenToUse = updatedUser?.fcmToken;
+  if (tokenToUse && updatedUser?.notifications) {
+    sendNotification([tokenToUse], {
+      title: 'Login successfully',
+      message: 'New user login to your account',
+      receiver: updatedUser._id as any,
+      receiverEmail: updatedUser.email,
+      receiverRole: updatedUser.role,
+      sender: updatedUser._id as any,
+    });
   }
 
   // create token and sent to the client

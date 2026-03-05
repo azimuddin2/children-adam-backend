@@ -131,6 +131,7 @@ const incrementCartItemQuantityIntoDB = async (
 
   const objectItemId = new mongoose.Types.ObjectId(itemId);
 
+  // ✅ Step 1: Increase quantity
   const cart = await Cart.findOneAndUpdate(
     {
       userId,
@@ -139,72 +140,6 @@ const incrementCartItemQuantityIntoDB = async (
     {
       $inc: {
         'items.$.quantity': 1,
-        subTotal: 0, // temporary (we recalc below)
-        totalPrice: 0,
-      },
-    },
-    {
-      new: true,
-      projection: {
-        items: { $elemMatch: { _id: objectItemId } },
-        subTotal: 1,
-        totalPrice: 1,
-        updatedAt: 1,
-      },
-    },
-  );
-
-  if (!cart || !cart.items.length) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Item not found');
-  }
-
-  // manually update subtotal for that item
-  const updatedItem = cart.items[0];
-  updatedItem.subtotal = updatedItem.price * updatedItem.quantity;
-
-  // recalculate full cart total safely
-  const fullCart = await Cart.findOne({ userId });
-
-  if (!fullCart) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Cart not found');
-  }
-
-  fullCart.subTotal = fullCart.items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0,
-  );
-  fullCart.totalPrice = fullCart.subTotal;
-
-  await fullCart.save();
-
-  return {
-    item: updatedItem,
-    subTotal: fullCart.subTotal,
-    totalPrice: fullCart.totalPrice,
-  };
-};
-
-const decrementCartItemQuantityIntoDB = async (
-  userId: string,
-  itemId: string,
-) => {
-  const isExist = await Cart.findOne({
-    userId,
-    'items._id': itemId,
-  });
-
-  if (!isExist) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Cart item not found');
-  }
-
-  const cart = await Cart.findOneAndUpdate(
-    {
-      userId: userId,
-      'items._id': itemId,
-    },
-    {
-      $inc: {
-        'items.$.quantity': -1,
       },
     },
     {
@@ -213,27 +148,70 @@ const decrementCartItemQuantityIntoDB = async (
   );
 
   if (!cart) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Item not found');
+  }
+
+  // ✅ Step 2: Update subtotal inside document array
+  cart.items.forEach((item) => {
+    item.subtotal = item.price * item.quantity;
+  });
+
+  // ✅ Step 3: Recalculate cart total
+  cart.subTotal = cart.items.reduce((acc, item) => acc + item.subtotal, 0);
+
+  cart.totalPrice = cart.subTotal;
+
+  await cart.save();
+
+  const updatedItem = cart.items.find(
+    (item) => item._id?.toString() === itemId,
+  );
+
+  return {
+    item: updatedItem,
+    subTotal: cart.subTotal,
+    totalPrice: cart.totalPrice,
+  };
+};
+
+const decrementCartItemQuantityIntoDB = async (
+  userId: string,
+  itemId: string,
+) => {
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid item ID');
+  }
+
+  const objectItemId = new mongoose.Types.ObjectId(itemId);
+
+  // decrement quantity
+  const cart = await Cart.findOneAndUpdate(
+    {
+      userId,
+      'items._id': objectItemId,
+    },
+    {
+      $inc: {
+        'items.$.quantity': -1,
+      },
+    },
+    { new: true },
+  );
+
+  if (!cart) {
     throw new AppError(httpStatus.NOT_FOUND, 'Cart item not found');
   }
 
-  // ⭐ Remove item if quantity <= 0
-  await Cart.updateOne(
-    {
-      userId: userId,
-      'items._id': itemId,
-      'items.quantity': { $lte: 0 },
-    },
-    {
-      $pull: {
-        items: { _id: itemId },
-      },
-    },
-  );
+  // remove item if quantity <= 0
+  cart.items = cart.items.filter((item) => item.quantity > 0);
 
-  const total = cart.items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0,
-  );
+  // update subtotal per item
+  cart.items.forEach((item) => {
+    item.subtotal = item.price * item.quantity;
+  });
+
+  // recalc cart total
+  const total = cart.items.reduce((acc, item) => acc + item.subtotal, 0);
 
   cart.subTotal = total;
   cart.totalPrice = total;
