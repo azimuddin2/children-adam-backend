@@ -30,162 +30,161 @@ const confirmPayment = catchAsync(async (req: Request, res: Response) => {
     paymentId,
   });
 
-  const date = dayjs(result.payment.createdAt).format('YYYY-MM-DD HH:mm:ss');
+  // const date = dayjs(result.payment.createdAt).format('YYYY-MM-DD HH:mm:ss');
 
-  res.send(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payment Successful</title>
+  //   res.send(`
+  // <!DOCTYPE html>
+  // <html lang="en">
+  // <head>
+  //   <meta charset="UTF-8" />
+  //   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  //   <title>Payment Successful</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+  //   <style>
+  //     * {
+  //       box-sizing: border-box;
+  //       margin: 0;
+  //       padding: 0;
+  //     }
 
-    body {
-      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-      min-height: 100vh;
-    background: linear-gradient(135deg, #4625A0, #7c5cff);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
+  //     body {
+  //       font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  //       min-height: 100vh;
+  //     background: linear-gradient(135deg, #4625A0, #7c5cff);
+  //       display: flex;
+  //       align-items: center;
+  //       justify-content: center;
+  //       padding: 16px;
+  //     }
 
-    .card {
-      background: #ffffff;
-      width: 100%;
-      max-width: 440px;
-      border-radius: 16px;
-      padding: 32px 24px;
-      text-align: center;
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-      animation: fadeUp 0.6s ease;
-    }
+  //     .card {
+  //       background: #ffffff;
+  //       width: 100%;
+  //       max-width: 440px;
+  //       border-radius: 16px;
+  //       padding: 32px 24px;
+  //       text-align: center;
+  //       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  //       animation: fadeUp 0.6s ease;
+  //     }
 
-    .icon {
-      width: 80px;
-      height: 80px;
-      background: #16a34a;
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      margin: 0 auto 16px;
-    }
+  //     .icon {
+  //       width: 80px;
+  //       height: 80px;
+  //       background: #16a34a;
+  //       color: white;
+  //       border-radius: 50%;
+  //       display: flex;
+  //       align-items: center;
+  //       justify-content: center;
+  //       font-size: 36px;
+  //       margin: 0 auto 16px;
+  //     }
 
-    h1 {
-      color: #111827;
-      font-size: 26px;
-      margin-bottom: 6px;
-    }
+  //     h1 {
+  //       color: #111827;
+  //       font-size: 26px;
+  //       margin-bottom: 6px;
+  //     }
 
-    .subtitle {
-      color: #6b7280;
-      font-size: 14px;
-      margin-bottom: 24px;
-    }
+  //     .subtitle {
+  //       color: #6b7280;
+  //       font-size: 14px;
+  //       margin-bottom: 24px;
+  //     }
 
-    .info {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: left;
-      font-size: 14px;
-    }
+  //     .info {
+  //       background: #f9fafb;
+  //       border-radius: 12px;
+  //       padding: 20px;
+  //       text-align: left;
+  //       font-size: 14px;
+  //     }
 
-    .info p {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      color: #374151;
-    }
+  //     .info p {
+  //       display: flex;
+  //       justify-content: space-between;
+  //       margin-bottom: 12px;
+  //       color: #374151;
+  //     }
 
-    .info p:last-child {
-      margin-bottom: 0;
-      padding-top: 12px;
-      border-top: 1px solid #e5e7eb;
-      font-weight: 600;
-    }
+  //     .info p:last-child {
+  //       margin-bottom: 0;
+  //       padding-top: 12px;
+  //       border-top: 1px solid #e5e7eb;
+  //       font-weight: 600;
+  //     }
 
-    .badge {
-      background: #dcfce7;
-      color: #15803d;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: capitalize;
-    }
+  //     .badge {
+  //       background: #dcfce7;
+  //       color: #15803d;
+  //       padding: 4px 10px;
+  //       border-radius: 999px;
+  //       font-size: 12px;
+  //       font-weight: 600;
+  //       text-transform: capitalize;
+  //     }
 
-    .btn {
-      margin-top: 24px;
-      display: block;
-      width: 100%;
-      padding: 14px;
-        background: #4625A0;
-      color: white;
-      text-decoration: none;
-      border-radius: 10px;
-      font-weight: 600;
-      transition: 0.2s ease;
-    }
+  //     .btn {
+  //       margin-top: 24px;
+  //       display: block;
+  //       width: 100%;
+  //       padding: 14px;
+  //         background: #4625A0;
+  //       color: white;
+  //       text-decoration: none;
+  //       border-radius: 10px;
+  //       font-weight: 600;
+  //       transition: 0.2s ease;
+  //     }
 
-    .btn:hover {
-        background: #361f85;
-      transform: translateY(-1px);
-    }
+  //     .btn:hover {
+  //         background: #361f85;
+  //       transform: translateY(-1px);
+  //     }
 
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+  //     @keyframes fadeUp {
+  //       from {
+  //         opacity: 0;
+  //         transform: translateY(20px);
+  //       }
+  //       to {
+  //         opacity: 1;
+  //         transform: translateY(0);
+  //       }
+  //     }
 
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 22px;
-      }
-      .card {
-        padding: 24px 16px;
-      }
-    }
-  </style>
-</head>
+  //     @media (max-width: 480px) {
+  //       h1 {
+  //         font-size: 22px;
+  //       }
+  //       .card {
+  //         padding: 24px 16px;
+  //       }
+  //     }
+  //   </style>
+  // </head>
 
-<body>
-  <div class="card">
-    <div class="icon">✓</div>
+  // <body>
+  //   <div class="card">
+  //     <div class="icon">✓</div>
 
-    <h1>Payment Successful</h1>
-    <p class="subtitle">Thank you for trusting us. Your payment is confirmed.</p>
+  //     <h1>Payment Successful</h1>
+  //     <p class="subtitle">Thank you for trusting us. Your payment is confirmed.</p>
 
-    <div class="info">
-      <p><span>Transaction ID</span><strong>${result.payment.trnId}</strong></p>
-      <p><span>Amount</span><strong>$${result.payment.price}</strong></p>
-      <p><span>Status</span><span class="badge">${result.payment.status}</span></p>
-      <p><span>Date</span><strong>${date}</strong></p>
-    </div>
+  //     <div class="info">
+  //       <p><span>Transaction ID</span><strong>${result.payment.trnId}</strong></p>
+  //       <p><span>Amount</span><strong>$${result.payment.price}</strong></p>
+  //       <p><span>Status</span><span class="badge">${result.payment.status}</span></p>
+  //       <p><span>Date</span><strong>${date}</strong></p>
+  //     </div>
 
-    <a class="btn" href="/">Go to App</a>
-  </div>
-</body>
-</html>
-  `);
+  //     <a class="btn" href="/">Go to App</a>
+  //   </div>
+  // </body>
+  // </html>
+  //   `);
 
-  /* API json response version
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -198,7 +197,6 @@ const confirmPayment = catchAsync(async (req: Request, res: Response) => {
       date: dayjs(result.payment.createdAt).format('YYYY-MM-DD HH:mm:ss'),
     },
   });
-*/
 });
 
 const cancelPayment = catchAsync(async (req: Request, res: Response) => {
@@ -208,157 +206,155 @@ const cancelPayment = catchAsync(async (req: Request, res: Response) => {
     await PaymentService.cancelPaymentIntoDB(paymentId);
   }
 
-  res.send(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payment Cancelled</title>
+  //   res.send(`
+  // <!DOCTYPE html>
+  // <html lang="en">
+  // <head>
+  //   <meta charset="UTF-8" />
+  //   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  //   <title>Payment Cancelled</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+  //   <style>
+  //     * {
+  //       box-sizing: border-box;
+  //       margin: 0;
+  //       padding: 0;
+  //     }
 
-    body {
-      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #4625A0, #7c5cff);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
+  //     body {
+  //       font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  //       min-height: 100vh;
+  //       background: linear-gradient(135deg, #4625A0, #7c5cff);
+  //       display: flex;
+  //       align-items: center;
+  //       justify-content: center;
+  //       padding: 16px;
+  //     }
 
-    .card {
-      background: #ffffff;
-      width: 100%;
-      max-width: 440px;
-      border-radius: 16px;
-      padding: 36px 28px;
-      text-align: center;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-      animation: fadeUp 0.6s ease;
-    }
+  //     .card {
+  //       background: #ffffff;
+  //       width: 100%;
+  //       max-width: 440px;
+  //       border-radius: 16px;
+  //       padding: 36px 28px;
+  //       text-align: center;
+  //       box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+  //       animation: fadeUp 0.6s ease;
+  //     }
 
-    .icon {
-      width: 80px;
-      height: 80px;
-      background: #f59e0b;
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      margin: 0 auto 18px;
-    }
+  //     .icon {
+  //       width: 80px;
+  //       height: 80px;
+  //       background: #f59e0b;
+  //       color: white;
+  //       border-radius: 50%;
+  //       display: flex;
+  //       align-items: center;
+  //       justify-content: center;
+  //       font-size: 36px;
+  //       margin: 0 auto 18px;
+  //     }
 
-   h1 {
-      color: #111827;
-      font-size: 26px;
-      margin-bottom: 6px;
-    }
+  //    h1 {
+  //       color: #111827;
+  //       font-size: 26px;
+  //       margin-bottom: 6px;
+  //     }
 
-    p.subtitle {
-      color: #6b7280;
-      font-size: 15px;
-      margin-bottom: 24px;
-    }
+  //     p.subtitle {
+  //       color: #6b7280;
+  //       font-size: 15px;
+  //       margin-bottom: 24px;
+  //     }
 
-    .info {
-      background: #fffbeb;
-      border-radius: 12px;
-      padding: 18px;
-      text-align: left;
-      font-size: 14px;
-      margin-bottom: 24px;
-      box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
-    }
+  //     .info {
+  //       background: #fffbeb;
+  //       border-radius: 12px;
+  //       padding: 18px;
+  //       text-align: left;
+  //       font-size: 14px;
+  //       margin-bottom: 24px;
+  //       box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+  //     }
 
-    .info p {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      color: #374151;
-      font-weight: 500;
-    }
+  //     .info p {
+  //       display: flex;
+  //       justify-content: space-between;
+  //       margin-bottom: 10px;
+  //       color: #374151;
+  //       font-weight: 500;
+  //     }
 
-    .info p:last-child {
-      margin-bottom: 0;
-      padding-top: 10px;
-      border-top: 1px solid #f3f4f6;
-      font-weight: 600;
-    }
+  //     .info p:last-child {
+  //       margin-bottom: 0;
+  //       padding-top: 10px;
+  //       border-top: 1px solid #f3f4f6;
+  //       font-weight: 600;
+  //     }
 
-    .button-container {
-      display: flex;
-      justify-content: flex-end; /* Button aligned to right */
-    }
+  //     .button-container {
+  //       display: flex;
+  //       justify-content: flex-end; /* Button aligned to right */
+  //     }
 
-    .btn {
-      padding: 14px 28px;
-      background: #4625A0;
-      color: white;
-      text-decoration: none;
-      border-radius: 10px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      width: 100%;
-    }
+  //     .btn {
+  //       padding: 14px 28px;
+  //       background: #4625A0;
+  //       color: white;
+  //       text-decoration: none;
+  //       border-radius: 10px;
+  //       font-weight: 600;
+  //       transition: all 0.2s ease;
+  //       width: 100%;
+  //     }
 
-    .btn:hover {
-      background: #361f85;
-      transform: translateY(-2px);
-    }
+  //     .btn:hover {
+  //       background: #361f85;
+  //       transform: translateY(-2px);
+  //     }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+  //     @keyframes fadeUp {
+  //       from { opacity: 0; transform: translateY(20px); }
+  //       to { opacity: 1; transform: translateY(0); }
+  //     }
 
-    @media (max-width: 480px) {
-      .card { padding: 24px 16px; }
-      h1 { font-size: 22px; }
-      .button-container { justify-content: center; }
-      .btn { width: 100%; text-align: center; }
-    }
-  </style>
-</head>
+  //     @media (max-width: 480px) {
+  //       .card { padding: 24px 16px; }
+  //       h1 { font-size: 22px; }
+  //       .button-container { justify-content: center; }
+  //       .btn { width: 100%; text-align: center; }
+  //     }
+  //   </style>
+  // </head>
 
-<body>
-  <div class="card">
-    <div class="icon">!</div>
-    <h1>Payment Cancelled</h1>
-    <p class="subtitle">You cancelled the payment. No amount was deducted.</p>
+  // <body>
+  //   <div class="card">
+  //     <div class="icon">!</div>
+  //     <h1>Payment Cancelled</h1>
+  //     <p class="subtitle">You cancelled the payment. No amount was deducted.</p>
 
-    <div class="info">
-      <p><span>Payment ID</span><strong>${paymentId ?? 'N/A'}</strong></p>
-      <p><span>Status</span><strong>CANCELLED</strong></p>
-    </div>
+  //     <div class="info">
+  //       <p><span>Payment ID</span><strong>${paymentId ?? 'N/A'}</strong></p>
+  //       <p><span>Status</span><strong>CANCELLED</strong></p>
+  //     </div>
 
-    <div class="button-container">
-      <a class="btn" href="/">Return to App</a>
-    </div>
-  </div>
-</body>
-</html>
-`);
+  //     <div class="button-container">
+  //       <a class="btn" href="/">Return to App</a>
+  //     </div>
+  //   </div>
+  // </body>
+  // </html>
+  // `);
 
-  /* API json response version
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: 'Payment cancelled successfully',
-      data: {
-        paymentId,
-        status: 'cancelled',
-      },
-    });
-  */
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Payment cancelled successfully',
+    data: {
+      paymentId,
+      status: 'cancelled',
+    },
+  });
 });
 
 const getAllPayments = catchAsync(async (req, res) => {
@@ -410,6 +406,19 @@ const getPaymentsHistoryByUserId = catchAsync(async (req, res) => {
   });
 });
 
+const getUserDonationStats = catchAsync(async (req, res) => {
+  const userId = req.user?.userId;
+
+  const result = await PaymentService.getUserDonationStats(userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User donation stats retrieved successfully',
+    data: result,
+  });
+});
+
 export const PaymentController = {
   createPayment,
   confirmPayment,
@@ -418,4 +427,5 @@ export const PaymentController = {
   getPaymentById,
   getPaymentStats,
   getPaymentsHistoryByUserId,
+  getUserDonationStats,
 };

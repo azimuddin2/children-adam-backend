@@ -1,4 +1,4 @@
-import mongoose, { startSession } from 'mongoose';
+import mongoose, { startSession, Types } from 'mongoose';
 import { Payment } from './payment.model';
 import { User } from '../user/user.model';
 import AppError from '../../errors/AppError';
@@ -6,7 +6,6 @@ import httpStatus from 'http-status';
 import config from '../../config';
 import StripeService from '../../class/stripe';
 import { sendNotification } from '../notification/notification.utils';
-import { TPayment } from './payment.interface';
 import { generateTrxId } from './payment.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { paymentSearchableFields } from './payment.constant';
@@ -106,13 +105,6 @@ const createPayment = async (userId: string, payload: any) => {
     payment.stripeSessionId = checkoutSession!.id;
     await payment.save({ session });
 
-    // Step 8: Clear cart after order + payment created
-    await Cart.findOneAndUpdate(
-      { _id: payload.cart },
-      { $set: { items: [], subTotal: 0, totalPrice: 0 } },
-      { new: true, session },
-    );
-
     await session.commitTransaction();
     return { url: checkoutSession!.url };
   } catch (error) {
@@ -129,25 +121,21 @@ const confirmPaymentIntoDB = async (query: {
 }) => {
   const { sessionId, paymentId } = query;
 
-  // Validate paymentId format
   if (!mongoose.Types.ObjectId.isValid(paymentId)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid payment ID');
   }
 
-  // Check Stripe payment success
   const isPaid = await StripeService.isPaymentSuccess(sessionId);
   if (!isPaid) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Payment not completed');
   }
 
-  // Get Stripe session details
   const paymentSession = await StripeService.getPaymentSession(sessionId);
 
   const session = await startSession();
   session.startTransaction();
 
   try {
-    // Update payment — status: paid
     const payment = await Payment.findByIdAndUpdate(
       paymentId,
       {
@@ -162,7 +150,6 @@ const confirmPaymentIntoDB = async (query: {
       throw new AppError(httpStatus.NOT_FOUND, 'Payment not found');
     }
 
-    // Update order — status: completed
     const order = await Order.findByIdAndUpdate(
       payment.order,
       { status: 'completed', isPaid: true },
@@ -173,12 +160,42 @@ const confirmPaymentIntoDB = async (query: {
       throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
     }
 
+    const user = await User.findById(payment.user);
+    if (user?.fcmToken) {
+      sendNotification([user.fcmToken], {
+        title: 'Donation Payment Successfully 🎉',
+        message: `Thank you for your generous donation! Your payment has been successfully received. Your support helps make a positive impact. ❤️`,
+        receiver: user._id as any,
+        receiverEmail: user.email,
+        receiverRole: user.role as string,
+        sender: user._id as any,
+        type: 'payment',
+      });
+    }
+
+    // ✅ Clear cart after successful payment
+    await Cart.findByIdAndUpdate(
+      order.cart,
+      {
+        $set: {
+          items: [],
+          subTotal: 0,
+          totalPrice: 0,
+        },
+      },
+      { session },
+    );
+
     await session.commitTransaction();
-    return { message: 'Payment confirmed successfully', payment, order };
+
+    return {
+      message: 'Payment confirmed successfully',
+      payment,
+      order,
+    };
   } catch (error) {
     await session.abortTransaction();
 
-    // Refund if something goes wrong after payment
     try {
       await StripeService.refund(sessionId);
     } catch (refundError: any) {
@@ -341,6 +358,165 @@ const getPaymentsHistoryByUserIdFromDB = async (userId: string) => {
   return payments;
 };
 
+const getUserDonationStats = async (userId?: string) => {
+  try {
+    const now = new Date();
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    /**
+     * Base Match Filter
+     * Removed status = completed because DB contains status = paid
+     */
+    const baseMatch: Record<string, unknown> = {
+      isPaid: true,
+      isDeleted: false,
+    };
+
+    if (userId) {
+      baseMatch.user = new Types.ObjectId(userId);
+    }
+
+    const result = await Payment.aggregate([
+      {
+        $match: baseMatch,
+      },
+
+      /**
+       * Facet aggregation
+       */
+      {
+        $facet: {
+          /**
+           * Monthly donation stats
+           */
+          monthly: [
+            {
+              $match: {
+                createdAt: {
+                  $gte: startOfMonth,
+                  $lte: endOfMonth,
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                total: {
+                  $sum: '$price',
+                },
+                count: {
+                  $sum: 1,
+                },
+              },
+            },
+          ],
+
+          /**
+           * All time donation stats
+           */
+          allTime: [
+            {
+              $group: {
+                _id: null,
+                total: {
+                  $sum: '$price',
+                },
+                count: {
+                  $sum: 1,
+                },
+              },
+            },
+          ],
+        },
+      },
+
+      /**
+       * Flatten facet result
+       */
+      {
+        $project: {
+          monthlyDonation: {
+            $ifNull: [
+              {
+                $getField: {
+                  field: 'total',
+                  input: { $arrayElemAt: ['$monthly', 0] },
+                },
+              },
+              0,
+            ],
+          },
+
+          monthlyCount: {
+            $ifNull: [
+              {
+                $getField: {
+                  field: 'count',
+                  input: { $arrayElemAt: ['$monthly', 0] },
+                },
+              },
+              0,
+            ],
+          },
+
+          totalDonations: {
+            $ifNull: [
+              {
+                $getField: {
+                  field: 'total',
+                  input: { $arrayElemAt: ['$allTime', 0] },
+                },
+              },
+              0,
+            ],
+          },
+
+          totalCount: {
+            $ifNull: [
+              {
+                $getField: {
+                  field: 'count',
+                  input: { $arrayElemAt: ['$allTime', 0] },
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+    ]);
+
+    return (
+      result[0] || {
+        monthlyDonation: 0,
+        monthlyCount: 0,
+        totalDonations: 0,
+        totalCount: 0,
+      }
+    );
+  } catch (error) {
+    console.error('Donation stats aggregation error:', error);
+
+    return {
+      monthlyDonation: 0,
+      monthlyCount: 0,
+      totalDonations: 0,
+      totalCount: 0,
+    };
+  }
+};
+
 export const PaymentService = {
   createPayment,
   confirmPaymentIntoDB,
@@ -349,4 +525,5 @@ export const PaymentService = {
   getPaymentByIdFromDB,
   getPaymentStatsFromDB,
   getPaymentsHistoryByUserIdFromDB,
+  getUserDonationStats,
 };

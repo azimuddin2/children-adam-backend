@@ -1,5 +1,6 @@
 import mongoose, { Schema, model } from 'mongoose';
 import { TCart, TCartItem } from './cart.interface';
+import { DONATION_MODELS } from './cart.constant';
 
 const CartItemSchema = new Schema<TCartItem>({
   donationId: {
@@ -10,14 +11,7 @@ const CartItemSchema = new Schema<TCartItem>({
   donationModel: {
     type: String,
     required: true,
-    enum: [
-      'SadaqahJariyahDonations',
-      'MonthlyDonations',
-      'TopAppealsDonations',
-      'DonationsSubcategory',
-      'TopAppeals',
-      'SadaqahJariyah',
-    ],
+    enum: DONATION_MODELS,
   },
   name: {
     type: String,

@@ -18,6 +18,12 @@ router.get(
 );
 
 router.get(
+  '/my-donation-stats',
+  auth('user'),
+  PaymentController.getUserDonationStats,
+);
+
+router.get(
   '/transactions/:id',
   auth('admin'),
   PaymentController.getPaymentById,

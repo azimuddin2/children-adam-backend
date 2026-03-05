@@ -1,27 +1,49 @@
 import mongoose, { model, Schema } from 'mongoose';
 import { TOrder } from './order.interface';
+import { DONATION_MODELS } from '../cart/cart.constant';
 
 const OrderItemSchema = new Schema({
   donationId: {
     type: mongoose.Schema.Types.ObjectId,
-    refPath: 'items.donationModel',
     required: true,
+    refPath: 'items.donationModel',
   },
   donationModel: {
     type: String,
     required: true,
-    enum: [
-      'SadaqahJariyahDonations',
-      'MonthlyDonations',
-      'TopAppealsDonations',
-    ],
+    enum: DONATION_MODELS,
   },
-  name: { type: String, required: true },
-  image: { type: String, default: null },
-  price: { type: Number, required: true },
-  donationsType: { type: String, required: true },
-  quantity: { type: Number, required: true },
-  subtotal: { type: Number, required: true },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  image: {
+    type: String,
+    default: null,
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  donationsType: {
+    type: String,
+    required: true,
+  },
+  notes: {
+    type: String,
+    default: '',
+  },
+  quantity: {
+    type: Number,
+    default: 1,
+    min: 1,
+  },
+  subtotal: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const OrderSchema = new Schema<TOrder>(
