@@ -58,6 +58,7 @@ const loginUser = async (payload: TLoginUser) => {
 
   // ✅ Send login notification if FCM token exists and notifications enabled
   const tokenToUse = updatedUser?.fcmToken;
+  console.log('Login FCM Token:', tokenToUse);
   if (tokenToUse && updatedUser?.notifications) {
     sendNotification([tokenToUse], {
       title: 'Login successfully',
