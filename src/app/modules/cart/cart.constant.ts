@@ -5,6 +5,8 @@ export const DONATION_MODELS = [
   'DonationsSubcategory',
   'TopAppeals',
   'SadaqahJariyah',
+  'DailySadaqah',
+  'DailySadaqahDonation',
 ] as const;
 
 export type TDonationModel = (typeof DONATION_MODELS)[number];

@@ -1,60 +1,131 @@
+// order.service.ts
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
-import { TOrder } from './order.interface';
 import AppError from '../../errors/AppError';
 import { Cart } from '../cart/cart.model';
 import { Order } from './order.model';
+import { TDonationModel } from '../cart/cart.constant';
+
+type TCreateOrderPayload =
+  | {
+      type: 'cart';
+      cart: string;
+    }
+  | {
+      type: 'direct';
+      donationId: string;
+      donationModel: TDonationModel;
+      name: string;
+      image?: string;
+      price: number;
+      donationsType: string;
+    };
 
 const createOrderIntoDB = async (
   userId: string,
-  payload: Pick<TOrder, 'cart'>,
+  payload: TCreateOrderPayload,
   session?: mongoose.ClientSession,
 ) => {
-  // Validate cart ID format
-  if (!mongoose.Types.ObjectId.isValid(payload.cart)) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid cart ID');
+  // ─── Cart Order ──────────────────────────────────────
+  if (payload.type === 'cart') {
+    if (!mongoose.Types.ObjectId.isValid(payload.cart)) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid cart ID');
+    }
+
+    const cart = await Cart.findOne({
+      _id: payload.cart,
+      userId,
+    }).session(session || null);
+
+    if (!cart) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Cart not found');
+    }
+
+    if (cart.items.length === 0) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Cart is empty');
+    }
+
+    // Duplicate order protection
+    const existingOrder = await Order.findOne({
+      cart: payload.cart,
+      isDeleted: false,
+    }).session(session || null);
+
+    if (existingOrder) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Order already exists for this cart',
+      );
+    }
+
+    const [order] = await Order.create(
+      [
+        {
+          user: new mongoose.Types.ObjectId(userId),
+          cart: new mongoose.Types.ObjectId(payload.cart),
+          orderType: 'cart',
+          items: cart.items,
+          totalPrice: cart.totalPrice,
+          status: 'pending',
+          isPaid: false,
+          isDeleted: false,
+        },
+      ],
+      session ? { session } : {},
+    );
+
+    if (!order) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create order');
+    }
+
+    return { order, cart, totalPrice: cart.totalPrice };
   }
 
-  // Find cart by cartId and userId — ownership confirm
-  const cart = await Cart.findOne({
-    _id: payload.cart,
-    userId,
-  }).session(session || null);
+  // ─── Direct Order ────────────────────────────────────
+  if (payload.type === 'direct') {
+    if (!mongoose.Types.ObjectId.isValid(payload.donationId)) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid donation ID');
+    }
 
-  if (!cart) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Cart not found');
+    if (!payload.price || payload.price <= 0) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid price');
+    }
+
+    const [order] = await Order.create(
+      [
+        {
+          user: new mongoose.Types.ObjectId(userId),
+          orderType: 'direct',
+          cart: null,
+          items: [
+            {
+              donationId: new mongoose.Types.ObjectId(payload.donationId),
+              donationModel: payload.donationModel,
+              name: payload.name,
+              image: payload.image || null,
+              price: payload.price,
+              donationsType: payload.donationsType,
+              quantity: 1,
+              subtotal: payload.price,
+            },
+          ],
+          totalPrice: payload.price,
+          status: 'pending',
+          isPaid: false,
+          isDeleted: false,
+        },
+      ],
+      session ? { session } : {},
+    );
+
+    if (!order) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create order');
+    }
+
+    return { order, cart: null, totalPrice: payload.price };
   }
 
-  // Prevent order creation if cart is empty
-  if (cart.items.length === 0) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Cart is empty');
-  }
-
-  // Create order from cart data + cart snapshot copy
-  const [order] = await Order.create(
-    [
-      {
-        user: new mongoose.Types.ObjectId(userId),
-        cart: new mongoose.Types.ObjectId(payload.cart),
-
-        // ✅ Cart snapshot — cart clear হলেও order এ থাকবে
-        items: cart.items,
-
-        totalPrice: cart.totalPrice,
-        status: 'pending',
-        isPaid: false,
-        isDeleted: false,
-      },
-    ],
-    session ? { session } : {},
-  );
-
-  if (!order) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create order');
-  }
-
-  // Return both order and cart — payment service needs both
-  return { order, cart };
+  throw new AppError(httpStatus.BAD_REQUEST, 'Invalid order type');
 };
 
 export const OrderService = {

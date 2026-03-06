@@ -53,10 +53,15 @@ const OrderSchema = new Schema<TOrder>(
       ref: 'User',
       required: true,
     },
+    orderType: {
+      type: String,
+      enum: ['direct', 'cart'],
+      required: true,
+    },
     cart: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Cart',
-      required: true,
+      default: null,
     },
     items: {
       type: [OrderItemSchema],
