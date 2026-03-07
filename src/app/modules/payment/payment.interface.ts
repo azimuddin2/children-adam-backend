@@ -1,4 +1,3 @@
-// payment.interface.ts
 import { Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
 import { TOrder } from '../order/order.interface';

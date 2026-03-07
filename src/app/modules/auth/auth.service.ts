@@ -56,20 +56,6 @@ const loginUser = async (payload: TLoginUser) => {
     )) as TUser;
   }
 
-  // ✅ Send login notification if FCM token exists and notifications enabled
-  const tokenToUse = updatedUser?.fcmToken;
-  console.log('Login FCM Token:', tokenToUse);
-  if (tokenToUse && updatedUser?.notifications) {
-    sendNotification([tokenToUse], {
-      title: 'Login successfully',
-      message: 'New user login to your account',
-      receiver: updatedUser._id as any,
-      receiverEmail: updatedUser.email,
-      receiverRole: updatedUser.role,
-      sender: updatedUser._id as any,
-    });
-  }
-
   // create token and sent to the client
   const jwtPayload: TJwtPayload = {
     userId: user._id.toString(),

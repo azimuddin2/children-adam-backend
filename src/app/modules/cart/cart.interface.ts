@@ -8,7 +8,7 @@ export type TDonationModelType =
   | 'TopAppeals'
   | 'SadaqahJariyah'
   | 'DailySadaqah'
-  | 'DailySadaqahDonation';
+  | 'DailySadaqahDonations';
 
 export type TCartItem = {
   _id?: string;

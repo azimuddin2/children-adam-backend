@@ -1,25 +1,9 @@
-// order.service.ts
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
 import { Cart } from '../cart/cart.model';
 import { Order } from './order.model';
-import { TDonationModel } from '../cart/cart.constant';
-
-type TCreateOrderPayload =
-  | {
-      type: 'cart';
-      cart: string;
-    }
-  | {
-      type: 'direct';
-      donationId: string;
-      donationModel: TDonationModel;
-      name: string;
-      image?: string;
-      price: number;
-      donationsType: string;
-    };
+import { TCreateOrderPayload } from './order.interface';
 
 const createOrderIntoDB = async (
   userId: string,
@@ -43,19 +27,6 @@ const createOrderIntoDB = async (
 
     if (cart.items.length === 0) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Cart is empty');
-    }
-
-    // Duplicate order protection
-    const existingOrder = await Order.findOne({
-      cart: payload.cart,
-      isDeleted: false,
-    }).session(session || null);
-
-    if (existingOrder) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        'Order already exists for this cart',
-      );
     }
 
     const [order] = await Order.create(
