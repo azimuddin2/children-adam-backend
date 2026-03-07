@@ -6,6 +6,10 @@ import { Gender, Login_With, UserRole, UserStatus } from './user.constant';
 
 const userSchema = new Schema<TUser, UserModel>(
   {
+    conversationId: {
+      type: String,
+      default: null,
+    },
     fullName: {
       type: String,
       required: [true, 'Full name is required'],

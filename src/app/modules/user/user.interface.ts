@@ -9,6 +9,7 @@ export type TGender = 'male' | 'female' | 'other';
 
 export type TUser = {
   _id: ObjectId;
+  conversationId?: string | null;
   fullName: string;
   email: string;
   phone: string;

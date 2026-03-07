@@ -82,7 +82,7 @@ const createPayment = async (
     const lineItems = isCartPayment
       ? cart!.items.map((item: any) => ({
           price_data: {
-            currency: 'usd',
+            currency: 'gbp',
             product_data: { name: item.name || 'Donation' },
             unit_amount: Math.round(item.price * 100),
           },
@@ -91,7 +91,7 @@ const createPayment = async (
       : [
           {
             price_data: {
-              currency: 'usd',
+              currency: 'gbp',
               product_data: { name: payload.name || 'Donation' },
               unit_amount: Math.round(payload.price! * 100),
             },
@@ -217,7 +217,7 @@ const confirmPaymentIntoDB = async (query: {
     if (user?.fcmToken) {
       sendNotification([user.fcmToken], {
         title: 'Donation Payment Successfully 🎉',
-        message: `Thank you for your generous donation of $${payment.price.toFixed(2)}! Your support helps make a positive impact. ❤️`,
+        message: `Thank you for your generous donation of £${payment.price.toFixed(2)}! Your support helps make a positive impact. ❤️`,
         receiver: user._id as any,
         receiverEmail: user.email,
         receiverRole: user.role as string,
