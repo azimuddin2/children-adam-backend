@@ -11,7 +11,7 @@ const getNotificationFromDB = async (query: Record<string, any>) => {
     throw new AppError(400, 'Invalid Receiver ID');
   }
 
-  const notificationQuery: any = { isRead: false, receiver };
+  const notificationQuery: any = { receiver };
 
   // type filter
   if (type) {
@@ -47,11 +47,11 @@ const makeMeReadNotification = async (id: string, user: string) => {
   return result;
 };
 
-const makeReadAllNotification = async (user: string) => {
+const makeReadAllNotification = async (userId: string) => {
   const result = await Notification.updateMany(
-    { receiver: user, isRead: true },
+    { receiver: userId, isRead: false },
     {
-      new: true,
+      $set: { isRead: true },
     },
   );
   return result;
@@ -120,10 +120,19 @@ const pushNotificationUser = async (payload: any, role: string) => {
   await sendEmail(payload.email, payload.title, htmlContent);
 };
 
+const deleteNotification = async (id: string, userId: string) => {
+  const result = await Notification.findOneAndDelete({
+    _id: id,
+    receiver: userId,
+  });
+  return result;
+};
+
 export const NotificationServices = {
   getNotificationFromDB,
   makeMeReadNotification,
   makeReadAllNotification,
   getAdminAllNotification,
   pushNotificationUser,
+  deleteNotification,
 };

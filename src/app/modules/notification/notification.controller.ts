@@ -49,9 +49,8 @@ const makeRead = catchAsync(async (req: Request, res: Response) => {
 });
 
 const makeReadAll = catchAsync(async (req: Request, res: Response) => {
-  const result = await NotificationServices.makeReadAllNotification(
-    req.user.userId,
-  );
+  const userId = req.user.userId;
+  const result = await NotificationServices.makeReadAllNotification(userId);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -87,10 +86,29 @@ const pushNotificationUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const deleteNotification = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.userId;
+  const id = req.params.id;
+
+  const result = await NotificationServices.deleteNotification(id, userId);
+
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Notification not found');
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Notification deleted successfully',
+    data: result,
+  });
+});
+
 export const NotificationController = {
   getAllNotification,
   makeRead,
   makeReadAll,
   getAdminAllNotification,
   pushNotificationUser,
+  deleteNotification,
 };

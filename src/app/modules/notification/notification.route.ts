@@ -35,4 +35,10 @@ router.post(
   NotificationController.pushNotificationUser,
 );
 
+router.delete(
+  '/:id',
+  auth(USER_ROLE.user, USER_ROLE.admin),
+  NotificationController.deleteNotification,
+);
+
 export const NotificationRoutes = router;
