@@ -17,7 +17,6 @@ const supportSchema = new Schema<TSupport>(
       type: String,
       required: [true, 'Email is required'],
       trim: true,
-      unique: true,
       sparse: true,
       lowercase: true,
       validate: {

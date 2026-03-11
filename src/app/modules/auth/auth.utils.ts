@@ -1,8 +1,6 @@
 import jwt, { Secret } from 'jsonwebtoken';
 import { TJwtPayload } from './auth.interface';
 import firebaseAdmin from '../../utils/firebase';
-import AppError from '../../errors/AppError';
-import httpStatus from 'http-status';
 
 export const createToken = (
   jwtPayload: TJwtPayload,
@@ -34,23 +32,23 @@ export const isValidFcmToken = async (token: string) => {
   }
 };
 
-export const verifyAppleToken = async (token: string): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    jwt.verify(
-      token,
-      getKey,
-      {
-        algorithms: ['RS256'],
-        issuer: 'https://appleid.apple.com',
-      },
-      (err, decoded) => {
-        if (err) {
-          return reject(
-            new AppError(httpStatus.BAD_REQUEST, 'Invalid Apple token'),
-          );
-        }
-        resolve(decoded);
-      },
-    );
-  });
-};
+// export const verifyAppleToken = async (token: string): Promise<any> => {
+//   return new Promise((resolve, reject) => {
+//     jwt.verify(
+//       token,
+//       getKey,
+//       {
+//         algorithms: ['RS256'],
+//         issuer: 'https://appleid.apple.com',
+//       },
+//       (err, decoded) => {
+//         if (err) {
+//           return reject(
+//             new AppError(httpStatus.BAD_REQUEST, 'Invalid Apple token'),
+//           );
+//         }
+//         resolve(decoded);
+//       },
+//     );
+//   });
+// };

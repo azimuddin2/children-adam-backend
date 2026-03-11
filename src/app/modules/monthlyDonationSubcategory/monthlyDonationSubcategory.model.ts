@@ -27,8 +27,8 @@ const DonationsSubcategorySchema = new Schema<TDonationsSubcategory>(
     slug: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
+      trim: true,
     },
     description: {
       type: String,

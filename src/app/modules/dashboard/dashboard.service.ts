@@ -232,9 +232,45 @@ const getTrafficByLocationFromDB = async () => {
   };
 };
 
+const getTopDonationsChartFromDB = async () => {
+  const result = await Payment.aggregate([
+    { $match: { isDeleted: false, isPaid: true, status: 'paid' } },
+    {
+      $lookup: {
+        from: 'orders',
+        localField: 'order',
+        foreignField: '_id',
+        as: 'order',
+      },
+    },
+    { $unwind: '$order' },
+    { $unwind: '$order.items' },
+    {
+      $group: {
+        _id: '$order.items.name',
+        totalAmount: { $sum: '$order.items.subtotal' },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { totalAmount: -1 } },
+    { $limit: 6 },
+    {
+      $project: {
+        _id: 0,
+        name: '$_id',
+        totalAmount: 1,
+        count: 1,
+      },
+    },
+  ]);
+
+  return result;
+};
+
 export const DashboardService = {
   getDashboardStatsFromDB,
   getEarningsOverviewFromDB,
   getUserOverviewFromDB,
   getTrafficByLocationFromDB,
+  getTopDonationsChartFromDB,
 };
