@@ -24,4 +24,10 @@ router.get(
   DashboardControllers.getTrafficByLocation,
 );
 
+router.get(
+  '/top-donations-chart',
+  auth('admin'),
+  DashboardControllers.getTopDonationsChart,
+);
+
 export const DashboardRoutes = router;

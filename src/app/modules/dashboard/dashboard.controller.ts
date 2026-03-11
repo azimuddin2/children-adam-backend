@@ -49,9 +49,21 @@ const getTrafficByLocation = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getTopDonationsChart = catchAsync(async (req: Request, res: Response) => {
+  const result = await DashboardService.getTopDonationsChartFromDB();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Admin Dashboard Top Donations Chart retrieved successfully',
+    data: result,
+  });
+});
+
 export const DashboardControllers = {
   getDashboardStats,
   getEarningsOverview,
   getUserOverview,
   getTrafficByLocation,
+  getTopDonationsChart,
 };

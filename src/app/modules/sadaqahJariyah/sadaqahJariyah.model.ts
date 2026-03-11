@@ -19,7 +19,6 @@ const SadaqahJariyahSchema = new Schema<TSadaqahJariyah>(
     slug: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -32,7 +31,6 @@ const SadaqahJariyahSchema = new Schema<TSadaqahJariyah>(
       type: String,
       required: true,
     },
-
     deleteKey: [{ type: String, required: false }],
     images: {
       type: [ImageSchema],

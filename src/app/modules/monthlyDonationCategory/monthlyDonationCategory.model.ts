@@ -11,7 +11,6 @@ const DonationsCategorySchema = new Schema<TDonationsCategory>(
     slug: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
     },
