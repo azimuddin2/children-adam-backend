@@ -22,7 +22,7 @@ app.use(
 // application routes
 app.use('/api/v1', router);
 
-app.get('/api/v1', (req: Request, res: Response) => {
+app.get('/', (req: Request, res: Response) => {
   res.json({
     message: 'Children Of Adam App Backend Running',
   });
