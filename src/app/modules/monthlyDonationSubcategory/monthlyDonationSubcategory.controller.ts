@@ -71,22 +71,24 @@ const updateDonationsSubcategory = catchAsync(
   },
 );
 
-const updateDonationsSubcategoryContent = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result =
-    await DonationsSubcategoryService.updateDonationsSubcategoryContentIntoDB(
-      id,
-      req.body,
-      req.files,
-    );
+const updateDonationsSubcategoryContent = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result =
+      await DonationsSubcategoryService.updateDonationsSubcategoryContentIntoDB(
+        id,
+        req.body,
+        req.files,
+      );
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Content updated successfully',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Content updated successfully',
+      data: result,
+    });
+  },
+);
 
 const deleteDonationsSubcategory = catchAsync(
   async (req: Request, res: Response) => {

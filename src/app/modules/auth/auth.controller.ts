@@ -8,7 +8,6 @@ const handleLoginUser = catchAsync(async (req: Request, res: Response) => {
   const { accessToken, refreshToken, isVerified, user } = result;
 
   if (result.requiresVerification) {
-    // 🔹 Inform user OTP sent, not an error
     return sendResponse(res, {
       statusCode: 200,
       success: true,
@@ -24,7 +23,7 @@ const handleLoginUser = catchAsync(async (req: Request, res: Response) => {
     return sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'User is logged in successfully!',
+      message: 'User is logged in successfully.',
       data: { accessToken, refreshToken, user },
     });
   }

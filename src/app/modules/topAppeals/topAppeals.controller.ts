@@ -57,21 +57,23 @@ const updateTopAppeals = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const updateTopAppealsContent = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await TopAppealsService.updateTopAppealsContentIntoDB(
-    id,
-    req.body,
-    req.files,
-  );
+const updateTopAppealsContent = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await TopAppealsService.updateTopAppealsContentIntoDB(
+      id,
+      req.body,
+      req.files,
+    );
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Content updated successfully',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Content updated successfully',
+      data: result,
+    });
+  },
+);
 
 const deleteTopAppeals = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;

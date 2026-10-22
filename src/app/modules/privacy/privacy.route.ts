@@ -10,7 +10,7 @@ router.get('/', PrivacyController.getPrivacy);
 
 router.post(
   '/',
-  // auth('admin'),
+  auth('admin'),
   validateRequest(PrivacyValidation.createPrivacyValidationSchema),
   PrivacyController.upsertPrivacy,
 );

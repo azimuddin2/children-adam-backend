@@ -34,7 +34,7 @@ const DonationsCategorySchema = new Schema<TDonationsCategory>(
     donationsSubcategory: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'DonationsSubcategory', // Reference to Subcategory Model
+        ref: 'DonationsSubcategory',
       },
     ],
     isDeleted: {

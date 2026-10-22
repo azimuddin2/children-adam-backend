@@ -36,7 +36,7 @@ const getAllPoll = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getPollById = catchAsync(async (req, res) => {
+const getPollById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await PollServices.getPollByIdFromDB(id);
 
@@ -60,7 +60,7 @@ const votePoll = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const deletePoll = catchAsync(async (req, res) => {
+const deletePoll = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await PollServices.deletePollFromDB(id);
 

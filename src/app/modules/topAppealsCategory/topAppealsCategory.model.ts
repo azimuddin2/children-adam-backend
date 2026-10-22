@@ -1,4 +1,3 @@
-// topAppealsCategory.model.ts
 import mongoose, { model, Schema } from 'mongoose';
 import { TTopAppealsCategory } from './topAppealsCategory.interface';
 

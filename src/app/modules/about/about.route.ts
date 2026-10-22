@@ -10,7 +10,7 @@ router.get('/', AboutController.getAbout);
 
 router.post(
   '/',
-  // auth('admin'),
+  auth('admin'),
   validateRequest(AboutValidation.createAboutValidationSchema),
   AboutController.upsertAbout,
 );

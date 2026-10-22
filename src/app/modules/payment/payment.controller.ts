@@ -357,7 +357,7 @@ const cancelPayment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getAllPayments = catchAsync(async (req, res) => {
+const getAllPayments = catchAsync(async (req: Request, res: Response) => {
   const result = await PaymentService.getAllPaymentsFormDB(req.query);
 
   sendResponse(res, {
@@ -369,7 +369,7 @@ const getAllPayments = catchAsync(async (req, res) => {
   });
 });
 
-const getPaymentById = catchAsync(async (req, res) => {
+const getPaymentById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const result = await PaymentService.getPaymentByIdFromDB(id);
@@ -382,7 +382,7 @@ const getPaymentById = catchAsync(async (req, res) => {
   });
 });
 
-const getPaymentStats = catchAsync(async (req, res) => {
+const getPaymentStats = catchAsync(async (req: Request, res: Response) => {
   const result = await PaymentService.getPaymentStatsFromDB();
 
   sendResponse(res, {
@@ -393,20 +393,23 @@ const getPaymentStats = catchAsync(async (req, res) => {
   });
 });
 
-const getPaymentsHistoryByUserId = catchAsync(async (req, res) => {
-  const userId = req.user?.userId;
+const getPaymentsHistoryByUserId = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
 
-  const result = await PaymentService.getPaymentsHistoryByUserIdFromDB(userId);
+    const result =
+      await PaymentService.getPaymentsHistoryByUserIdFromDB(userId);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'User payments retrieved successfully',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'User payments retrieved successfully',
+      data: result,
+    });
+  },
+);
 
-const getUserDonationStats = catchAsync(async (req, res) => {
+const getUserDonationStats = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
 
   const result = await PaymentService.getUserDonationStats(userId);

@@ -40,7 +40,6 @@ const TopAppealsSchema = new Schema<TTopAppeals>(
       type: String,
       default: '',
     },
-
     donations: [
       {
         type: mongoose.Schema.Types.ObjectId,

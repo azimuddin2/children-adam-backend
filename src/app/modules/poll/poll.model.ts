@@ -58,7 +58,6 @@ const PollSchema = new Schema<TPoll>(
       type: Number,
       default: 0,
     },
-
     // Track users who voted in this poll
     votedUsers: [
       {

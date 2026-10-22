@@ -1,8 +1,9 @@
+import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { SupportServices } from './support.service';
 
-const createSupport = catchAsync(async (req, res) => {
+const createSupport = catchAsync(async (req: Request, res: Response) => {
   const result = await SupportServices.createSupportIntoDB(req.body);
 
   sendResponse(res, {
@@ -13,7 +14,7 @@ const createSupport = catchAsync(async (req, res) => {
   });
 });
 
-const getAllSupport = catchAsync(async (req, res) => {
+const getAllSupport = catchAsync(async (req: Request, res: Response) => {
   const result = await SupportServices.getAllSupportFromDB(req.query);
 
   sendResponse(res, {
@@ -25,7 +26,7 @@ const getAllSupport = catchAsync(async (req, res) => {
   });
 });
 
-const getSupportById = catchAsync(async (req, res) => {
+const getSupportById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await SupportServices.getSupportByIdFromDB(id);
 
@@ -37,22 +38,24 @@ const getSupportById = catchAsync(async (req, res) => {
   });
 });
 
-const adminSupportMessageReply = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await SupportServices.adminSupportMessageReplyIntoDB(
-    id,
-    req.body,
-  );
+const adminSupportMessageReply = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await SupportServices.adminSupportMessageReplyIntoDB(
+      id,
+      req.body,
+    );
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Support message reply successfully.',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Support message reply successfully.',
+      data: result,
+    });
+  },
+);
 
-const deleteSupport = catchAsync(async (req, res) => {
+const deleteSupport = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await SupportServices.deleteSupportFromDB(id);
 

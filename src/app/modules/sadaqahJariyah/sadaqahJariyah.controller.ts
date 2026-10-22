@@ -61,21 +61,24 @@ const updateSadaqahJariyah = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const updateSadaqahJariyahContent = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await SadaqahJariyahServices.updateSadaqahJariyahContentIntoDB(
-    id,
-    req.body,
-    req.files,
-  );
+const updateSadaqahJariyahContent = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result =
+      await SadaqahJariyahServices.updateSadaqahJariyahContentIntoDB(
+        id,
+        req.body,
+        req.files,
+      );
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Content updated successfully',
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Content updated successfully',
+      data: result,
+    });
+  },
+);
 
 const deleteSadaqahJariyah = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;

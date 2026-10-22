@@ -268,13 +268,13 @@ const forgotPassword = async (email: string) => {
               <p style="margin:0;">Use the OTP below to reset your password. Do not share this code with anyone.</p>
             </td>
           </tr>
-          <tr>
-            <td align="center" style="padding:20px 0;">
-              <div style="display:inline-block; padding:15px 30px; font-size:24px; font-weight:bold; color:#ffffff; background-color:#; border-radius:6px; letter-spacing:2px;">
-                ${otp}
-              </div>
-            </td>
-          </tr>
+           <tr>
+              <td align="center" style="padding: 20px 0;">
+                <div style="display: inline-block; padding: 15px 30px; font-size: 24px; font-weight: bold; color: #ffffff; background-color: #EA6919; border-radius: 6px; letter-spacing: 2px;">
+                  ${otp}
+                </div>
+              </td>
+            </tr>
           <tr>
             <td style="font-size:14px; color:#666666; text-align:center; padding-bottom:20px;">
               <p style="margin:0;">This OTP is valid for <strong>${otpExpiryMinutes} minutes</strong> (expires at <strong>${expiresAt.toLocaleTimeString()}</strong>).</p>

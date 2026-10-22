@@ -49,7 +49,7 @@ const signupUserIntoDB = async (payload: TUser) => {
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
-    '7m',
+    '15m',
   );
 
   // 6. Send OTP email

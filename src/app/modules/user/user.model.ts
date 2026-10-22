@@ -38,7 +38,7 @@ const userSchema = new Schema<TUser, UserModel>(
       default: null,
       validate: {
         validator: function (v) {
-          if (!v) return true; // allow empty
+          if (!v) return true;
           return /^\+[1-9]\d{7,14}$/.test(v);
         },
         message: (props) =>
@@ -181,9 +181,8 @@ userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
 ) {
   if (!passwordChangedTimestamp) return false;
   const passwordChangedTime =
-    new Date(passwordChangedTimestamp).getTime() / 1000; // convert to seconds
+    new Date(passwordChangedTimestamp).getTime() / 1000;
   return passwordChangedTime > jwtIssuedTimestamp;
 };
 
-// ✅ Export model
 export const User = model<TUser, UserModel>('User', userSchema);
