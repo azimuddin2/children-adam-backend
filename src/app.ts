@@ -23,9 +23,7 @@ app.use(
 app.use('/api/v1', router);
 
 app.get('/', (req: Request, res: Response) => {
-  res.json({
-    message: 'Children Of Adam App Backend Running',
-  });
+  res.send('SmeVine Website Backend Running');
 });
 
 const test = async (req: Request, res: Response) => {
