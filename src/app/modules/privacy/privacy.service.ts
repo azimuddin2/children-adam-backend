@@ -2,7 +2,6 @@ import AppError from '../../errors/AppError';
 import { TPrivacy } from './privacy.interface';
 import { Privacy } from './privacy.model';
 
-// Get privacy (always single doc)
 const getPrivacyFromDB = async () => {
   const result = await Privacy.findOne({ isDeleted: false });
   if (!result) {
@@ -11,10 +10,9 @@ const getPrivacyFromDB = async () => {
   return result;
 };
 
-// Create/Update privacy (upsert)
 const upsertPrivacyIntoDB = async (payload: TPrivacy) => {
   const result = await Privacy.findOneAndUpdate(
-    {}, // empty filter → only one doc
+    {},
     { ...payload, isDeleted: false },
     { new: true, upsert: true, runValidators: true },
   );
@@ -25,7 +23,6 @@ const upsertPrivacyIntoDB = async (payload: TPrivacy) => {
   return result;
 };
 
-// Soft delete (mark as deleted)
 const deletePrivacyFromDB = async () => {
   const isPrivacyExists = await Privacy.findOne();
   if (!isPrivacyExists) {
@@ -45,7 +42,7 @@ const deletePrivacyFromDB = async () => {
   return result;
 };
 
-export const PrivacyService = {
+export const PrivacyServices = {
   getPrivacyFromDB,
   upsertPrivacyIntoDB,
   deletePrivacyFromDB,

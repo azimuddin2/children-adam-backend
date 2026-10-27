@@ -104,7 +104,7 @@ const deleteNotification = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const NotificationController = {
+export const NotificationControllers = {
   getAllNotification,
   makeRead,
   makeReadAll,

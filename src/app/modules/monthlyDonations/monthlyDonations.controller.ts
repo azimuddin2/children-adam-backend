@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { MonthlyDonationsService } from './monthlyDonations.service';
+import { MonthlyDonationsServices } from './monthlyDonations.service';
 
 const createMonthlyDonations = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await MonthlyDonationsService.createMonthlyDonationsIntoDB(
+    const result = await MonthlyDonationsServices.createMonthlyDonationsIntoDB(
       req.body,
       req.file,
     );
@@ -21,7 +21,7 @@ const createMonthlyDonations = catchAsync(
 
 const getAllMonthlyDonations = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await MonthlyDonationsService.getAllMonthlyDonationsFromDB(
+    const result = await MonthlyDonationsServices.getAllMonthlyDonationsFromDB(
       req.query,
     );
 
@@ -39,7 +39,7 @@ const getMonthlyDonationsById = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await MonthlyDonationsService.getMonthlyDonationsByIdFromDB(id);
+      await MonthlyDonationsServices.getMonthlyDonationsByIdFromDB(id);
 
     sendResponse(res, {
       statusCode: 200,
@@ -53,7 +53,7 @@ const getMonthlyDonationsById = catchAsync(
 const updateMonthlyDonations = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    const result = await MonthlyDonationsService.updateMonthlyDonationsIntoDB(
+    const result = await MonthlyDonationsServices.updateMonthlyDonationsIntoDB(
       id,
       req.body,
       req.file,
@@ -72,7 +72,7 @@ const deleteMonthlyDonations = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await MonthlyDonationsService.deleteMonthlyDonationsFromDB(id);
+      await MonthlyDonationsServices.deleteMonthlyDonationsFromDB(id);
 
     sendResponse(res, {
       statusCode: 200,
@@ -83,7 +83,7 @@ const deleteMonthlyDonations = catchAsync(
   },
 );
 
-export const MonthlyDonationsController = {
+export const MonthlyDonationsControllers = {
   createMonthlyDonations,
   getAllMonthlyDonations,
   getMonthlyDonationsById,

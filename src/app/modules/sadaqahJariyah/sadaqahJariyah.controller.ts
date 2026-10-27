@@ -92,7 +92,7 @@ const deleteSadaqahJariyah = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const SadaqahJariyahController = {
+export const SadaqahJariyahControllers = {
   createSadaqahJariyah,
   getAllSadaqahJariyah,
   getSadaqahJariyahById,

@@ -1,9 +1,9 @@
 import express from 'express';
 import auth from '../../middlewares/auth';
-import { OrderController } from './order.controller';
+import { OrderControllers } from './order.controller';
 
 const router = express.Router();
 
-router.post('/', auth('user'), OrderController.createOrder);
+router.post('/', auth('user'), OrderControllers.createOrder);
 
 export const OrderRoutes = router;

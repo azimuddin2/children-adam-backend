@@ -44,7 +44,7 @@ const updateDonationsCategoryValidationSchema = z.object({
   }),
 });
 
-export const DonationsCategoryValidation = {
+export const DonationsCategoryValidations = {
   createDonationsCategoryValidationSchema,
   updateDonationsCategoryValidationSchema,
 };

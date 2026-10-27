@@ -28,11 +28,17 @@ const loginUser = async (payload: TLoginUser) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (user?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   // checking if the password is correct
@@ -125,11 +131,17 @@ const refreshToken = async (token: string) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user account is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (user?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   // create token and sent to the client
@@ -162,11 +174,17 @@ const changePassword = async (
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user account is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (user?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   // checking if the password is correct
@@ -207,11 +225,17 @@ const forgotPassword = async (email: string) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user account is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (user?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   // create token and sent to the client
@@ -230,7 +254,7 @@ const forgotPassword = async (email: string) => {
 
   const otp = generateOtp();
 
-  const otpExpiryMinutes = 5; // OTP valid 5 minutes
+  const otpExpiryMinutes = 5;
   const expiresAt = moment().add(otpExpiryMinutes, 'minutes').toDate();
 
   await User.findByIdAndUpdate(user?._id, {
@@ -320,11 +344,17 @@ const resetPassword = async (token: string, payload: TResetPassword) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user account is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (user?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   const verifyExpiresAt = user?.verification?.expiresAt as Date;
@@ -361,11 +391,17 @@ const logoutUser = async (userId: string) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user account is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (user?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   const updatedUser = await User.findByIdAndUpdate(
@@ -392,7 +428,6 @@ const logoutUser = async (userId: string) => {
   return null;
 };
 
-// SOCIAL LOGIN METHODS GOOGLE & APPLE
 const googleLogin = async (payload: {
   email: string;
   fullName: string;
@@ -403,7 +438,7 @@ const googleLogin = async (payload: {
     throw new AppError(httpStatus.BAD_REQUEST, 'Email and name are required');
   }
 
-  /* ================= FCM TOKEN VALIDATION ================= */
+  /* ------------------ FCM TOKEN VALIDATION ------------------ */
   if (payload?.fcmToken) {
     const isValid = await isValidFcmToken(payload.fcmToken);
     if (!isValid) {
@@ -411,26 +446,32 @@ const googleLogin = async (payload: {
     }
   }
 
-  /* ================= CHECK USER EXISTS ================= */
+  /* ------------------ CHECK USER EXISTS ------------------ */
   const existingUser = await User.isUserExistsByEmail(payload.email);
 
-  /* =============== EXISTING USER LOGIN ================== */
+  /* ------------------ EXISTING USER LOGIN ------------------ */
   if (existingUser) {
     if (existingUser.isDeleted) {
-      throw new AppError(httpStatus.FORBIDDEN, 'User account is deleted');
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        'Your account has been deactivated. For assistance, please contact our support team.',
+      );
     }
     if (existingUser.status === 'blocked') {
-      throw new AppError(httpStatus.FORBIDDEN, 'User is blocked');
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        'Your account has been blocked. For assistance, please contact our support team.',
+      );
     }
 
-    /* ================= UPDATE FCM TOKEN ================= */
+    /* ------------------ UPDATE FCM TOKEN ------------------ */
     if (payload?.fcmToken) {
       await User.findByIdAndUpdate(existingUser._id, {
         fcmToken: payload.fcmToken,
       });
     }
 
-    /* ================= CREATE JWT ================= */
+    /* ------------------ CREATE JWT ------------------ */
     const jwtPayload: TJwtPayload = {
       userId: existingUser._id.toString(),
       name: existingUser.fullName,
@@ -452,7 +493,7 @@ const googleLogin = async (payload: {
     return { user: existingUser, accessToken, refreshToken };
   }
 
-  /* ================== NEW USER CREATE ==================== */
+  /* ------------------ NEW USER CREATE ------------------ */
   const newUser = await User.create({
     fullName: payload.fullName,
     email: payload.email,
@@ -469,7 +510,7 @@ const googleLogin = async (payload: {
     fcmToken: payload?.fcmToken || null,
   });
 
-  /* ================= CREATE JWT FOR NEW USER ================= */
+  /* ------------------ CREATE JWT FOR NEW USER ------------------ */
   const jwtPayload: TJwtPayload = {
     userId: newUser._id.toString(),
     name: newUser.fullName,
@@ -500,7 +541,7 @@ const appleLogin = async (payload: {
     throw new AppError(httpStatus.BAD_REQUEST, 'Email and name are required');
   }
 
-  /* ================= FCM TOKEN VALIDATION ================= */
+  /* ------------------ FCM TOKEN VALIDATION ------------------ */
   if (payload?.fcmToken) {
     const isValid = await isValidFcmToken(payload.fcmToken);
     if (!isValid) {
@@ -508,26 +549,32 @@ const appleLogin = async (payload: {
     }
   }
 
-  /* ================= CHECK USER EXISTS ================= */
+  /* ------------------ CHECK USER EXISTS ------------------ */
   const existingUser = await User.isUserExistsByEmail(payload.email);
 
-  /* =============== EXISTING USER LOGIN ================== */
+  /* ------------------ EXISTING USER LOGIN ------------------ */
   if (existingUser) {
     if (existingUser.isDeleted) {
-      throw new AppError(httpStatus.FORBIDDEN, 'User account is deleted');
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        'Your account has been deactivated. For assistance, please contact our support team.',
+      );
     }
     if (existingUser.status === 'blocked') {
-      throw new AppError(httpStatus.FORBIDDEN, 'User is blocked');
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        'Your account has been blocked. For assistance, please contact our support team.',
+      );
     }
 
-    /* ================= UPDATE FCM TOKEN ================= */
+    /* ------------------ UPDATE FCM TOKEN ------------------ */
     if (payload?.fcmToken) {
       await User.findByIdAndUpdate(existingUser._id, {
         fcmToken: payload.fcmToken,
       });
     }
 
-    /* ================= CREATE JWT ================= */
+    /* ------------------ CREATE JWT ------------------ */
     const jwtPayload: TJwtPayload = {
       userId: existingUser._id.toString(),
       name: existingUser.fullName,
@@ -549,21 +596,20 @@ const appleLogin = async (payload: {
     return { user: existingUser, accessToken, refreshToken };
   }
 
-  /* ================== NEW USER CREATE ==================== */
+  /* ------------------ NEW USER CREATE ------------------ */
   const newUser = await User.create({
     fullName: payload.fullName,
     email: payload.email,
     phone: null,
-    // ✅ password নেই
     role: USER_ROLE.user,
-    loginWith: Login_With.apple, // ✅ typo fix: loginWth → loginWith
+    loginWith: Login_With.apple,
     isVerified: true,
     verification: { status: true },
     image: null,
     fcmToken: payload?.fcmToken || null,
   });
 
-  /* ================= CREATE JWT FOR NEW USER ================= */
+  /* ------------------ CREATE JWT FOR NEW USER ------------------ */
   const jwtPayload: TJwtPayload = {
     userId: newUser._id.toString(),
     name: newUser.fullName,

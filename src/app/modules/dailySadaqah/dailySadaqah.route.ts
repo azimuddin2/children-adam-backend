@@ -3,14 +3,14 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import parseData from '../../middlewares/parseData';
 import { DailySadaqahControllers } from './dailySadaqah.controller';
-import { DailySadaqahValidation } from './dailySadaqah.validation';
+import { DailySadaqahValidations } from './dailySadaqah.validation';
 
 const router = express.Router();
 
 router.post(
   '/',
   auth('admin'),
-  validateRequest(DailySadaqahValidation.createDailySadaqahValidationSchema),
+  validateRequest(DailySadaqahValidations.createDailySadaqahValidationSchema),
   DailySadaqahControllers.createDailySadaqah,
 );
 
@@ -30,7 +30,7 @@ router.patch(
   '/:id',
   auth('admin'),
   parseData(),
-  validateRequest(DailySadaqahValidation.updateDailySadaqahValidationSchema),
+  validateRequest(DailySadaqahValidations.updateDailySadaqahValidationSchema),
   DailySadaqahControllers.updateDailySadaqah,
 );
 

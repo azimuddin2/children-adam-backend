@@ -117,7 +117,7 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
   const baseQuery = {
     ...query,
     isDeleted: false,
-    role: { $nin: ['admin'] }, // ✅ exclude admins
+    role: { $nin: ['admin'] },
   };
 
   const queryBuilder = new QueryBuilder(User.find(), baseQuery)
@@ -141,11 +141,17 @@ const getUserByIdFromDB = async (id: string) => {
   }
 
   if (result?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (result?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   return result;
@@ -159,11 +165,17 @@ const getUserProfileFromDB = async (email: string) => {
   }
 
   if (result?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (result?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   return result;
@@ -236,18 +248,24 @@ const updateUserPictureIntoDB = async (
   }
 
   if (existingUser.isDeleted) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (existingUser.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const payload: Record<string, any> = {}; // ✅ initialize payload
+    const payload: Record<string, any> = {};
 
     // 📸 Step 2: Handle image upload
     if (file) {
@@ -341,11 +359,17 @@ const updateNotificationSettingsIntoDB = async (
   }
 
   if (existingUser?.isDeleted === true) {
-    throw new AppError(403, 'This user account is deleted!');
+    throw new AppError(
+      403,
+      'Your account has been deactivated. For assistance, please contact our support team.',
+    );
   }
 
   if (existingUser?.status === 'blocked') {
-    throw new AppError(403, 'This user is blocked!');
+    throw new AppError(
+      403,
+      'Your account has been blocked. For assistance, please contact our support team.',
+    );
   }
 
   const updatedUser = await User.findOneAndUpdate(

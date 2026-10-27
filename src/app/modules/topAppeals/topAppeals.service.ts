@@ -269,7 +269,7 @@ const deleteTopAppealsFromDB = async (id: string) => {
   return result;
 };
 
-export const TopAppealsService = {
+export const TopAppealsServices = {
   createTopAppealsIntoDB,
   getAllTopAppealsFromDB,
   getTopAppealsByIdFromDB,

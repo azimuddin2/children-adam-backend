@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
-import { PromotionService } from './promotion.service';
+import { PromotionServices } from './promotion.service';
 import sendResponse from '../../utils/sendResponse';
 
 const createPromotion = catchAsync(async (req: Request, res: Response) => {
-  const result = await PromotionService.createPromotionIntoDB(req.body);
+  const result = await PromotionServices.createPromotionIntoDB(req.body);
 
   sendResponse(res, {
     statusCode: 201,

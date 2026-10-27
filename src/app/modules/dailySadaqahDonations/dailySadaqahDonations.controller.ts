@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { DailySadaqahDonationsService } from './dailySadaqahDonations.service';
+import { DailySadaqahDonationsServices } from './dailySadaqahDonations.service';
 
 const createDailySadaqahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await DailySadaqahDonationsService.createDailySadaqahDonationsIntoDB(
+      await DailySadaqahDonationsServices.createDailySadaqahDonationsIntoDB(
         req.body,
         req.file,
       );
@@ -23,7 +23,7 @@ const createDailySadaqahDonations = catchAsync(
 const getAllDailySadaqahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await DailySadaqahDonationsService.getAllDailySadaqahDonationsFromDB(
+      await DailySadaqahDonationsServices.getAllDailySadaqahDonationsFromDB(
         req.query,
       );
 
@@ -41,7 +41,9 @@ const getDailySadaqahDonationsById = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await DailySadaqahDonationsService.getDailySadaqahDonationsByIdFromDB(id);
+      await DailySadaqahDonationsServices.getDailySadaqahDonationsByIdFromDB(
+        id,
+      );
 
     sendResponse(res, {
       statusCode: 200,
@@ -56,7 +58,7 @@ const updateDailySadaqahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await DailySadaqahDonationsService.updateDailySadaqahDonationsIntoDB(
+      await DailySadaqahDonationsServices.updateDailySadaqahDonationsIntoDB(
         id,
         req.body,
         req.file,
@@ -75,7 +77,7 @@ const deleteDailySadaqahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await DailySadaqahDonationsService.deleteDailySadaqahDonationsFromDB(id);
+      await DailySadaqahDonationsServices.deleteDailySadaqahDonationsFromDB(id);
 
     sendResponse(res, {
       statusCode: 200,
@@ -86,7 +88,7 @@ const deleteDailySadaqahDonations = catchAsync(
   },
 );
 
-export const DailySadaqahDonationsController = {
+export const DailySadaqahDonationsControllers = {
   createDailySadaqahDonations,
   getAllDailySadaqahDonations,
   getDailySadaqahDonationsById,

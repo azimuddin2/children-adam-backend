@@ -1,44 +1,44 @@
 import { Router } from 'express';
 import auth from '../../middlewares/auth';
 import { USER_ROLE } from '../user/user.constant';
-import { NotificationController } from './notification.controller';
+import { NotificationControllers } from './notification.controller';
 
 const router = Router();
 
 router.get(
   '/',
   auth(USER_ROLE.user, USER_ROLE.admin),
-  NotificationController.getAllNotification,
+  NotificationControllers.getAllNotification,
 );
 
 router.put(
   '/make-read/:id',
   auth(USER_ROLE.user, USER_ROLE.admin),
-  NotificationController.makeRead,
+  NotificationControllers.makeRead,
 );
 
 router.put(
   '/make-read-all',
   auth(USER_ROLE.user, USER_ROLE.admin),
-  NotificationController.makeReadAll,
+  NotificationControllers.makeReadAll,
 );
 
 router.get(
   '/admin-notifications',
   auth(USER_ROLE.admin),
-  NotificationController.getAdminAllNotification,
+  NotificationControllers.getAdminAllNotification,
 );
 
 router.post(
   '/push-notification',
   auth(USER_ROLE.user, USER_ROLE.admin),
-  NotificationController.pushNotificationUser,
+  NotificationControllers.pushNotificationUser,
 );
 
 router.delete(
   '/:id',
   auth(USER_ROLE.user, USER_ROLE.admin),
-  NotificationController.deleteNotification,
+  NotificationControllers.deleteNotification,
 );
 
 export const NotificationRoutes = router;

@@ -51,7 +51,7 @@ const updateTopAppealsContentSchema = z.object({
   }),
 });
 
-export const TopAppealsValidation = {
+export const TopAppealsValidations = {
   createTopAppealsSchema,
   updateTopAppealsSchema,
   updateTopAppealsContentSchema,

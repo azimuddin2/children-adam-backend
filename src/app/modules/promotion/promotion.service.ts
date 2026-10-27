@@ -91,6 +91,6 @@ const createPromotionIntoDB = async (payload: TPromotion) => {
   return result;
 };
 
-export const PromotionService = {
+export const PromotionServices = {
   createPromotionIntoDB,
 };

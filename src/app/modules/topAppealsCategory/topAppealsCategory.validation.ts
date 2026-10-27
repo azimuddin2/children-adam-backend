@@ -18,7 +18,7 @@ const updateTopAppealsCategoryValidationSchema = z.object({
   }),
 });
 
-export const TopAppealsCategoryValidation = {
+export const TopAppealsCategoryValidations = {
   createTopAppealsCategoryValidationSchema,
   updateTopAppealsCategoryValidationSchema,
 };

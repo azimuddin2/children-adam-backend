@@ -35,7 +35,7 @@ const updateSadaqahJariyahContentValidationSchema = z.object({
   }),
 });
 
-export const SadaqahJariyahValidation = {
+export const SadaqahJariyahValidations = {
   createSadaqahJariyahValidationSchema,
   updateSadaqahJariyahValidationSchema,
   updateSadaqahJariyahContentValidationSchema,

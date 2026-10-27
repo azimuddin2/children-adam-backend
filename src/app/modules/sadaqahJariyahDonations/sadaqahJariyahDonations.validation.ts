@@ -42,7 +42,7 @@ const updateSadaqahJariyahDonationsSchema = z.object({
   }),
 });
 
-export const SadaqahJariyahDonationsValidation = {
+export const SadaqahJariyahDonationsValidations = {
   createSadaqahJariyahDonationsSchema,
   updateSadaqahJariyahDonationsSchema,
 };

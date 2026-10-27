@@ -4,7 +4,7 @@ import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
 import { DonationsCategoryControllers } from './monthlyDonationCategory.controller';
-import { DonationsCategoryValidation } from './monthlyDonationCategory.validation';
+import { DonationsCategoryValidations } from './monthlyDonationCategory.validation';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -15,7 +15,7 @@ router.post(
   upload.single('image'),
   parseData(),
   validateRequest(
-    DonationsCategoryValidation.createDonationsCategoryValidationSchema,
+    DonationsCategoryValidations.createDonationsCategoryValidationSchema,
   ),
   DonationsCategoryControllers.createDonationsCategory,
 );
@@ -38,7 +38,7 @@ router.patch(
   upload.single('image'),
   parseData(),
   validateRequest(
-    DonationsCategoryValidation.updateDonationsCategoryValidationSchema,
+    DonationsCategoryValidations.updateDonationsCategoryValidationSchema,
   ),
   DonationsCategoryControllers.updateDonationsCategory,
 );

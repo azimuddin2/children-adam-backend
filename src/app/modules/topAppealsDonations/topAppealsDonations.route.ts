@@ -3,8 +3,8 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
-import { TopAppealsDonationsValidation } from './topAppealsDonations.validation';
-import { TopAppealsDonationsController } from './topAppealsDonations.controller';
+import { TopAppealsDonationsValidations } from './topAppealsDonations.validation';
+import { TopAppealsDonationsControllers } from './topAppealsDonations.controller';
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
 
@@ -14,21 +14,21 @@ router.post(
   upload.single('image'),
   parseData(),
   validateRequest(
-    TopAppealsDonationsValidation.createTopAppealsDonationsSchema,
+    TopAppealsDonationsValidations.createTopAppealsDonationsSchema,
   ),
-  TopAppealsDonationsController.createTopAppealsDonations,
+  TopAppealsDonationsControllers.createTopAppealsDonations,
 );
 
 router.get(
   '/',
   auth('admin', 'user'),
-  TopAppealsDonationsController.getAllTopAppealsDonations,
+  TopAppealsDonationsControllers.getAllTopAppealsDonations,
 );
 
 router.get(
   '/:id',
   auth('admin', 'user'),
-  TopAppealsDonationsController.getTopAppealsDonationsById,
+  TopAppealsDonationsControllers.getTopAppealsDonationsById,
 );
 
 router.patch(
@@ -37,15 +37,15 @@ router.patch(
   upload.single('image'),
   parseData(),
   validateRequest(
-    TopAppealsDonationsValidation.updateTopAppealsDonationsSchema,
+    TopAppealsDonationsValidations.updateTopAppealsDonationsSchema,
   ),
-  TopAppealsDonationsController.updateTopAppealsDonations,
+  TopAppealsDonationsControllers.updateTopAppealsDonations,
 );
 
 router.delete(
   '/:id',
   auth('admin'),
-  TopAppealsDonationsController.deleteTopAppealsDonations,
+  TopAppealsDonationsControllers.deleteTopAppealsDonations,
 );
 
 export const TopAppealsDonationsRoutes = router;

@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { TopAppealsService } from './topAppeals.service';
+import { TopAppealsServices } from './topAppeals.service';
 
 const createTopAppeals = catchAsync(async (req: Request, res: Response) => {
-  const result = await TopAppealsService.createTopAppealsIntoDB(
+  const result = await TopAppealsServices.createTopAppealsIntoDB(
     req.body,
     req.file,
   );
@@ -18,7 +18,7 @@ const createTopAppeals = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllTopAppeals = catchAsync(async (req: Request, res: Response) => {
-  const result = await TopAppealsService.getAllTopAppealsFromDB(req.query);
+  const result = await TopAppealsServices.getAllTopAppealsFromDB(req.query);
 
   sendResponse(res, {
     statusCode: 200,
@@ -31,7 +31,7 @@ const getAllTopAppeals = catchAsync(async (req: Request, res: Response) => {
 
 const getTopAppealsById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await TopAppealsService.getTopAppealsByIdFromDB(id);
+  const result = await TopAppealsServices.getTopAppealsByIdFromDB(id);
 
   sendResponse(res, {
     statusCode: 200,
@@ -43,7 +43,7 @@ const getTopAppealsById = catchAsync(async (req: Request, res: Response) => {
 
 const updateTopAppeals = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await TopAppealsService.updateTopAppealsIntoDB(
+  const result = await TopAppealsServices.updateTopAppealsIntoDB(
     id,
     req.body,
     req.file,
@@ -60,7 +60,7 @@ const updateTopAppeals = catchAsync(async (req: Request, res: Response) => {
 const updateTopAppealsContent = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    const result = await TopAppealsService.updateTopAppealsContentIntoDB(
+    const result = await TopAppealsServices.updateTopAppealsContentIntoDB(
       id,
       req.body,
       req.files,
@@ -77,7 +77,7 @@ const updateTopAppealsContent = catchAsync(
 
 const deleteTopAppeals = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await TopAppealsService.deleteTopAppealsFromDB(id);
+  const result = await TopAppealsServices.deleteTopAppealsFromDB(id);
 
   sendResponse(res, {
     statusCode: 200,
@@ -87,7 +87,7 @@ const deleteTopAppeals = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const TopAppealsController = {
+export const TopAppealsControllers = {
   createTopAppeals,
   getAllTopAppeals,
   getTopAppealsById,

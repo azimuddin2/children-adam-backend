@@ -3,8 +3,8 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
-import { SadaqahJariyahValidation } from './sadaqahJariyah.validation';
-import { SadaqahJariyahController } from './sadaqahJariyah.controller';
+import { SadaqahJariyahValidations } from './sadaqahJariyah.validation';
+import { SadaqahJariyahControllers } from './sadaqahJariyah.controller';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -15,21 +15,21 @@ router.post(
   upload.single('image'),
   parseData(),
   validateRequest(
-    SadaqahJariyahValidation.createSadaqahJariyahValidationSchema,
+    SadaqahJariyahValidations.createSadaqahJariyahValidationSchema,
   ),
-  SadaqahJariyahController.createSadaqahJariyah,
+  SadaqahJariyahControllers.createSadaqahJariyah,
 );
 
 router.get(
   '/',
   auth('admin', 'user'),
-  SadaqahJariyahController.getAllSadaqahJariyah,
+  SadaqahJariyahControllers.getAllSadaqahJariyah,
 );
 
 router.get(
   '/:id',
   auth('admin', 'user'),
-  SadaqahJariyahController.getSadaqahJariyahById,
+  SadaqahJariyahControllers.getSadaqahJariyahById,
 );
 
 router.patch(
@@ -38,9 +38,9 @@ router.patch(
   upload.single('image'),
   parseData(),
   validateRequest(
-    SadaqahJariyahValidation.updateSadaqahJariyahValidationSchema,
+    SadaqahJariyahValidations.updateSadaqahJariyahValidationSchema,
   ),
-  SadaqahJariyahController.updateSadaqahJariyah,
+  SadaqahJariyahControllers.updateSadaqahJariyah,
 );
 
 router.patch(
@@ -49,15 +49,15 @@ router.patch(
   upload.fields([{ name: 'images', maxCount: 10 }]),
   parseData(),
   validateRequest(
-    SadaqahJariyahValidation.updateSadaqahJariyahContentValidationSchema,
+    SadaqahJariyahValidations.updateSadaqahJariyahContentValidationSchema,
   ),
-  SadaqahJariyahController.updateSadaqahJariyahContent,
+  SadaqahJariyahControllers.updateSadaqahJariyahContent,
 );
 
 router.delete(
   '/:id',
   auth('admin'),
-  SadaqahJariyahController.deleteSadaqahJariyah,
+  SadaqahJariyahControllers.deleteSadaqahJariyah,
 );
 
 export const SadaqahJariyahRoutes = router;

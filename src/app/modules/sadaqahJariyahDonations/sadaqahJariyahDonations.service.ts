@@ -178,7 +178,7 @@ const deleteSadaqahJariyahDonationsFromDB = async (id: string) => {
   return result;
 };
 
-export const SadaqahJariyahDonationsService = {
+export const SadaqahJariyahDonationsServices = {
   createSadaqahJariyahDonationsIntoDB,
   getAllSadaqahJariyahDonationsFromDB,
   getSadaqahJariyahDonationsByIdFromDB,

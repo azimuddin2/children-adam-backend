@@ -3,8 +3,8 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
-import { DonationsSubcategoryValidation } from './monthlyDonationSubcategory.validation';
-import { DonationsSubcategoryController } from './monthlyDonationSubcategory.controller';
+import { DonationsSubcategoryValidations } from './monthlyDonationSubcategory.validation';
+import { DonationsSubcategoryControllers } from './monthlyDonationSubcategory.controller';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -15,21 +15,21 @@ router.post(
   upload.single('image'),
   parseData(),
   validateRequest(
-    DonationsSubcategoryValidation.createDonationsSubcategorySchema,
+    DonationsSubcategoryValidations.createDonationsSubcategorySchema,
   ),
-  DonationsSubcategoryController.createDonationsSubcategory,
+  DonationsSubcategoryControllers.createDonationsSubcategory,
 );
 
 router.get(
   '/',
   auth('admin', 'user'),
-  DonationsSubcategoryController.getAllDonationsSubcategory,
+  DonationsSubcategoryControllers.getAllDonationsSubcategory,
 );
 
 router.get(
   '/:id',
   auth('admin', 'user'),
-  DonationsSubcategoryController.getDonationsSubcategoryById,
+  DonationsSubcategoryControllers.getDonationsSubcategoryById,
 );
 
 router.patch(
@@ -38,9 +38,9 @@ router.patch(
   upload.single('image'),
   parseData(),
   validateRequest(
-    DonationsSubcategoryValidation.updateDonationsSubcategorySchema,
+    DonationsSubcategoryValidations.updateDonationsSubcategorySchema,
   ),
-  DonationsSubcategoryController.updateDonationsSubcategory,
+  DonationsSubcategoryControllers.updateDonationsSubcategory,
 );
 
 router.patch(
@@ -49,15 +49,15 @@ router.patch(
   upload.fields([{ name: 'images', maxCount: 10 }]),
   parseData(),
   validateRequest(
-    DonationsSubcategoryValidation.updateSubcategoryContentSchema,
+    DonationsSubcategoryValidations.updateSubcategoryContentSchema,
   ),
-  DonationsSubcategoryController.updateDonationsSubcategoryContent,
+  DonationsSubcategoryControllers.updateDonationsSubcategoryContent,
 );
 
 router.delete(
   '/:id',
   auth('admin'),
-  DonationsSubcategoryController.deleteDonationsSubcategory,
+  DonationsSubcategoryControllers.deleteDonationsSubcategory,
 );
 
 export const DonationsSubcategoryRoutes = router;

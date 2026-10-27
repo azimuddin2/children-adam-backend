@@ -3,8 +3,9 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
-import { DailySadaqahDonationsController } from './dailySadaqahDonations.controller';
-import { DailySadaqahDonationsValidation } from './dailySadaqahDonations.validation';
+import { DailySadaqahDonationsControllers } from './dailySadaqahDonations.controller';
+import { DailySadaqahDonationsValidations } from './dailySadaqahDonations.validation';
+
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
 
@@ -14,21 +15,21 @@ router.post(
   upload.single('image'),
   parseData(),
   validateRequest(
-    DailySadaqahDonationsValidation.createDailySadaqahDonationsSchema,
+    DailySadaqahDonationsValidations.createDailySadaqahDonationsSchema,
   ),
-  DailySadaqahDonationsController.createDailySadaqahDonations,
+  DailySadaqahDonationsControllers.createDailySadaqahDonations,
 );
 
 router.get(
   '/',
   auth('admin', 'user'),
-  DailySadaqahDonationsController.getAllDailySadaqahDonations,
+  DailySadaqahDonationsControllers.getAllDailySadaqahDonations,
 );
 
 router.get(
   '/:id',
   auth('admin', 'user'),
-  DailySadaqahDonationsController.getDailySadaqahDonationsById,
+  DailySadaqahDonationsControllers.getDailySadaqahDonationsById,
 );
 
 router.patch(
@@ -37,15 +38,15 @@ router.patch(
   upload.single('image'),
   parseData(),
   validateRequest(
-    DailySadaqahDonationsValidation.updateDailySadaqahDonationsSchema,
+    DailySadaqahDonationsValidations.updateDailySadaqahDonationsSchema,
   ),
-  DailySadaqahDonationsController.updateDailySadaqahDonations,
+  DailySadaqahDonationsControllers.updateDailySadaqahDonations,
 );
 
 router.delete(
   '/:id',
   auth('admin'),
-  DailySadaqahDonationsController.deleteDailySadaqahDonations,
+  DailySadaqahDonationsControllers.deleteDailySadaqahDonations,
 );
 
 export const DailySadaqahDonationsRoutes = router;

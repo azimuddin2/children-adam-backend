@@ -176,7 +176,7 @@ const deleteDailySadaqahDonationsFromDB = async (id: string) => {
   return result;
 };
 
-export const DailySadaqahDonationsService = {
+export const DailySadaqahDonationsServices = {
   createDailySadaqahDonationsIntoDB,
   getAllDailySadaqahDonationsFromDB,
   getDailySadaqahDonationsByIdFromDB,

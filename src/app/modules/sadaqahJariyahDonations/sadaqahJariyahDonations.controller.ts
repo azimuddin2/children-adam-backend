@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { SadaqahJariyahDonationsService } from './sadaqahJariyahDonations.service';
+import { SadaqahJariyahDonationsServices } from './sadaqahJariyahDonations.service';
 
 const createSadaqahJariyahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await SadaqahJariyahDonationsService.createSadaqahJariyahDonationsIntoDB(
+      await SadaqahJariyahDonationsServices.createSadaqahJariyahDonationsIntoDB(
         req.body,
         req.file,
       );
@@ -23,7 +23,7 @@ const createSadaqahJariyahDonations = catchAsync(
 const getAllSadaqahJariyahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await SadaqahJariyahDonationsService.getAllSadaqahJariyahDonationsFromDB(
+      await SadaqahJariyahDonationsServices.getAllSadaqahJariyahDonationsFromDB(
         req.query,
       );
 
@@ -41,7 +41,7 @@ const getSadaqahJariyahDonationsById = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await SadaqahJariyahDonationsService.getSadaqahJariyahDonationsByIdFromDB(
+      await SadaqahJariyahDonationsServices.getSadaqahJariyahDonationsByIdFromDB(
         id,
       );
 
@@ -58,7 +58,7 @@ const updateSadaqahJariyahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await SadaqahJariyahDonationsService.updateSadaqahJariyahDonationsIntoDB(
+      await SadaqahJariyahDonationsServices.updateSadaqahJariyahDonationsIntoDB(
         id,
         req.body,
         req.file,
@@ -77,7 +77,7 @@ const deleteSadaqahJariyahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await SadaqahJariyahDonationsService.deleteSadaqahJariyahDonationsFromDB(
+      await SadaqahJariyahDonationsServices.deleteSadaqahJariyahDonationsFromDB(
         id,
       );
 
@@ -90,7 +90,7 @@ const deleteSadaqahJariyahDonations = catchAsync(
   },
 );
 
-export const SadaqahJariyahDonationsController = {
+export const SadaqahJariyahDonationsControllers = {
   createSadaqahJariyahDonations,
   getAllSadaqahJariyahDonations,
   getSadaqahJariyahDonationsById,

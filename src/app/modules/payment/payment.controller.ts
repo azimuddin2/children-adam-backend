@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { PaymentService } from './payment.service';
+import { PaymentServices } from './payment.service';
 import dayjs from 'dayjs';
 
 const createPayment = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
 
-  const url = await PaymentService.createPayment(userId, req.body);
+  const url = await PaymentServices.createPayment(userId, req.body);
 
   sendResponse(res, {
     statusCode: 201,
@@ -25,7 +25,7 @@ const confirmPayment = catchAsync(async (req: Request, res: Response) => {
     paymentId: string;
   };
 
-  const result = await PaymentService.confirmPaymentIntoDB({
+  const result = await PaymentServices.confirmPaymentIntoDB({
     sessionId,
     paymentId,
   });
@@ -203,7 +203,7 @@ const cancelPayment = catchAsync(async (req: Request, res: Response) => {
   const { paymentId } = req.query as { paymentId?: string };
 
   if (paymentId) {
-    await PaymentService.cancelPaymentIntoDB(paymentId);
+    await PaymentServices.cancelPaymentIntoDB(paymentId);
   }
 
   //   res.send(`
@@ -358,7 +358,7 @@ const cancelPayment = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllPayments = catchAsync(async (req: Request, res: Response) => {
-  const result = await PaymentService.getAllPaymentsFormDB(req.query);
+  const result = await PaymentServices.getAllPaymentsFormDB(req.query);
 
   sendResponse(res, {
     statusCode: 200,
@@ -372,7 +372,7 @@ const getAllPayments = catchAsync(async (req: Request, res: Response) => {
 const getPaymentById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const result = await PaymentService.getPaymentByIdFromDB(id);
+  const result = await PaymentServices.getPaymentByIdFromDB(id);
 
   sendResponse(res, {
     statusCode: 200,
@@ -383,7 +383,7 @@ const getPaymentById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPaymentStats = catchAsync(async (req: Request, res: Response) => {
-  const result = await PaymentService.getPaymentStatsFromDB();
+  const result = await PaymentServices.getPaymentStatsFromDB();
 
   sendResponse(res, {
     statusCode: 200,
@@ -398,7 +398,7 @@ const getPaymentsHistoryByUserId = catchAsync(
     const userId = req.user?.userId;
 
     const result =
-      await PaymentService.getPaymentsHistoryByUserIdFromDB(userId);
+      await PaymentServices.getPaymentsHistoryByUserIdFromDB(userId);
 
     sendResponse(res, {
       statusCode: 200,
@@ -412,7 +412,7 @@ const getPaymentsHistoryByUserId = catchAsync(
 const getUserDonationStats = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
 
-  const result = await PaymentService.getUserDonationStats(userId);
+  const result = await PaymentServices.getUserDonationStats(userId);
 
   sendResponse(res, {
     statusCode: 200,
@@ -422,7 +422,7 @@ const getUserDonationStats = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const PaymentController = {
+export const PaymentControllers = {
   createPayment,
   confirmPayment,
   cancelPayment,

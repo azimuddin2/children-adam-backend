@@ -2,7 +2,7 @@ import express from 'express';
 import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import parseData from '../../middlewares/parseData';
-import { TopAppealsCategoryValidation } from './topAppealsCategory.validation';
+import { TopAppealsCategoryValidations } from './topAppealsCategory.validation';
 import { TopAppealsCategoryControllers } from './topAppealsCategory.controller';
 
 const router = express.Router();
@@ -11,7 +11,7 @@ router.post(
   '/',
   auth('admin'),
   validateRequest(
-    TopAppealsCategoryValidation.createTopAppealsCategoryValidationSchema,
+    TopAppealsCategoryValidations.createTopAppealsCategoryValidationSchema,
   ),
   TopAppealsCategoryControllers.createTopAppealsCategory,
 );
@@ -33,7 +33,7 @@ router.patch(
   auth('admin'),
   parseData(),
   validateRequest(
-    TopAppealsCategoryValidation.updateTopAppealsCategoryValidationSchema,
+    TopAppealsCategoryValidations.updateTopAppealsCategoryValidationSchema,
   ),
   TopAppealsCategoryControllers.updateTopAppealsCategory,
 );

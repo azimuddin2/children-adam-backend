@@ -1,34 +1,34 @@
 import { Router } from 'express';
 import auth from '../../middlewares/auth';
-import { PaymentController } from './payment.controller';
+import { PaymentControllers } from './payment.controller';
 
 const router = Router();
 
-router.post('/checkout', auth('user'), PaymentController.createPayment);
+router.post('/checkout', auth('user'), PaymentControllers.createPayment);
 
-router.get('/confirm', PaymentController.confirmPayment);
-router.get('/cancel', PaymentController.cancelPayment);
+router.get('/confirm', PaymentControllers.confirmPayment);
+router.get('/cancel', PaymentControllers.cancelPayment);
 
-router.get('/transactions', auth('admin'), PaymentController.getAllPayments);
+router.get('/transactions', auth('admin'), PaymentControllers.getAllPayments);
 
 router.get(
   '/my-transactions-history',
   auth('user'),
-  PaymentController.getPaymentsHistoryByUserId,
+  PaymentControllers.getPaymentsHistoryByUserId,
 );
 
 router.get(
   '/my-donation-stats',
   auth('user'),
-  PaymentController.getUserDonationStats,
+  PaymentControllers.getUserDonationStats,
 );
 
 router.get(
   '/transactions/:id',
   auth('admin'),
-  PaymentController.getPaymentById,
+  PaymentControllers.getPaymentById,
 );
 
-router.get('/stats', auth('admin'), PaymentController.getPaymentStats);
+router.get('/stats', auth('admin'), PaymentControllers.getPaymentStats);
 
 export const PaymentRoutes = router;

@@ -172,7 +172,7 @@ const deleteMonthlyDonationsFromDB = async (id: string) => {
   return result;
 };
 
-export const MonthlyDonationsService = {
+export const MonthlyDonationsServices = {
   createMonthlyDonationsIntoDB,
   getAllMonthlyDonationsFromDB,
   getMonthlyDonationsByIdFromDB,

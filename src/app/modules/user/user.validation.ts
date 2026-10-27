@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { Gender, UserRole, UserStatus } from './user.constant';
 
-// ✅ SignUp (Create) User Validation Schema
 const createUserValidationSchema = z.object({
   body: z.object({
     fullName: z
@@ -66,7 +65,6 @@ const createUserValidationSchema = z.object({
   }),
 });
 
-// ✅ Update User Validation Schema
 const updateUserValidationSchema = z.object({
   body: z.object({
     fullName: z
@@ -94,7 +92,6 @@ const updateUserValidationSchema = z.object({
   }),
 });
 
-// ✅ Change User Status Validation
 const changeStatusValidationSchema = z.object({
   body: z.object({
     status: z.enum([...UserStatus] as [string, ...string[]], {
@@ -103,7 +100,6 @@ const changeStatusValidationSchema = z.object({
   }),
 });
 
-// ✅ Notification Validation
 const notificationSettingsValidationSchema = z.object({
   body: z.object({
     notifications: z.boolean({

@@ -73,7 +73,7 @@ const adminSupportMessageReplyIntoDB = async (
   if (payload.messageReply) {
     await sendEmail(
       isSupportExists.email,
-      `Reply from Support Team - Ticket #${isSupportExists._id.toString().slice(-6)}`, // subject line
+      `Reply from Support Team - Ticket #${isSupportExists._id.toString().slice(-6)}`,
       `
       <!DOCTYPE html>
       <html lang="en">

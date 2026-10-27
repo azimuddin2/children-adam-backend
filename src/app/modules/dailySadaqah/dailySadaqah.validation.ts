@@ -18,7 +18,7 @@ const updateDailySadaqahValidationSchema = z.object({
   }),
 });
 
-export const DailySadaqahValidation = {
+export const DailySadaqahValidations = {
   createDailySadaqahValidationSchema,
   updateDailySadaqahValidationSchema,
 };

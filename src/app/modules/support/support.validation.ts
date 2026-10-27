@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// 🔹 Support Validation Schema
 const createSupportValidationSchema = z.object({
   body: z.object({
     firstName: z
@@ -27,7 +26,7 @@ const replyAdminSupportValidationSchema = z.object({
   }),
 });
 
-export const SupportValidation = {
+export const SupportValidations = {
   createSupportValidationSchema,
   replyAdminSupportValidationSchema,
 };

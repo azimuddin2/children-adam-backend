@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { DashboardService } from './dashboard.service';
+import { DashboardServices } from './dashboard.service';
 
 const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
-  const result = await DashboardService.getDashboardStatsFromDB();
+  const result = await DashboardServices.getDashboardStatsFromDB();
 
   sendResponse(res, {
     statusCode: 200,
@@ -16,7 +16,9 @@ const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
 
 const getEarningsOverview = catchAsync(async (req: Request, res: Response) => {
   const { year } = req.query;
-  const result = await DashboardService.getEarningsOverviewFromDB(Number(year));
+  const result = await DashboardServices.getEarningsOverviewFromDB(
+    Number(year),
+  );
 
   sendResponse(res, {
     statusCode: 200,
@@ -28,7 +30,7 @@ const getEarningsOverview = catchAsync(async (req: Request, res: Response) => {
 
 const getUserOverview = catchAsync(async (req: Request, res: Response) => {
   const { year } = req.query;
-  const result = await DashboardService.getUserOverviewFromDB(Number(year));
+  const result = await DashboardServices.getUserOverviewFromDB(Number(year));
 
   sendResponse(res, {
     statusCode: 200,
@@ -39,7 +41,7 @@ const getUserOverview = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getTrafficByLocation = catchAsync(async (req: Request, res: Response) => {
-  const result = await DashboardService.getTrafficByLocationFromDB();
+  const result = await DashboardServices.getTrafficByLocationFromDB();
 
   sendResponse(res, {
     statusCode: 200,
@@ -50,7 +52,7 @@ const getTrafficByLocation = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getTopDonationsChart = catchAsync(async (req: Request, res: Response) => {
-  const result = await DashboardService.getTopDonationsChartFromDB();
+  const result = await DashboardServices.getTopDonationsChartFromDB();
 
   sendResponse(res, {
     statusCode: 200,

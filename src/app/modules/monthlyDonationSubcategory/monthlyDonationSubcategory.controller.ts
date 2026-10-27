@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { DonationsSubcategoryService } from './monthlyDonationSubcategory.service';
+import { DonationsSubcategoryServices } from './monthlyDonationSubcategory.service';
 
 const createDonationsSubcategory = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await DonationsSubcategoryService.createDonationsSubcategoryIntoDB(
+      await DonationsSubcategoryServices.createDonationsSubcategoryIntoDB(
         req.body,
         req.file,
       );
@@ -23,7 +23,7 @@ const createDonationsSubcategory = catchAsync(
 const getAllDonationsSubcategory = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await DonationsSubcategoryService.getAllDonationsSubcategoryFromDB(
+      await DonationsSubcategoryServices.getAllDonationsSubcategoryFromDB(
         req.query,
       );
 
@@ -41,7 +41,7 @@ const getDonationsSubcategoryById = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await DonationsSubcategoryService.getDonationsSubcategoryByIdFromDB(id);
+      await DonationsSubcategoryServices.getDonationsSubcategoryByIdFromDB(id);
 
     sendResponse(res, {
       statusCode: 200,
@@ -56,7 +56,7 @@ const updateDonationsSubcategory = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await DonationsSubcategoryService.updateDonationsSubcategoryIntoDB(
+      await DonationsSubcategoryServices.updateDonationsSubcategoryIntoDB(
         id,
         req.body,
         req.file,
@@ -75,7 +75,7 @@ const updateDonationsSubcategoryContent = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await DonationsSubcategoryService.updateDonationsSubcategoryContentIntoDB(
+      await DonationsSubcategoryServices.updateDonationsSubcategoryContentIntoDB(
         id,
         req.body,
         req.files,
@@ -94,7 +94,7 @@ const deleteDonationsSubcategory = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await DonationsSubcategoryService.deleteDonationsSubcategoryFromDB(id);
+      await DonationsSubcategoryServices.deleteDonationsSubcategoryFromDB(id);
 
     sendResponse(res, {
       statusCode: 200,
@@ -105,7 +105,7 @@ const deleteDonationsSubcategory = catchAsync(
   },
 );
 
-export const DonationsSubcategoryController = {
+export const DonationsSubcategoryControllers = {
   createDonationsSubcategory,
   getAllDonationsSubcategory,
   getDonationsSubcategoryById,

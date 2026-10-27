@@ -9,7 +9,7 @@ import { sendNotification } from '../notification/notification.utils';
 import { generateTrxId } from './payment.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { paymentSearchableFields } from './payment.constant';
-import { OrderService } from '../order/order.service';
+import { OrderServices } from '../order/order.service';
 import { Cart } from '../cart/cart.model';
 import { Order } from '../order/order.model';
 import { TDonationModel } from '../cart/cart.constant';
@@ -72,7 +72,7 @@ const createPayment = async (
           donationsType: payload.donationsType || 'Sadaqah',
         };
 
-    const { order, cart, totalPrice } = await OrderService.createOrderIntoDB(
+    const { order, cart, totalPrice } = await OrderServices.createOrderIntoDB(
       userId,
       orderPayload,
       session,
@@ -254,7 +254,6 @@ const confirmPaymentIntoDB = async (query: {
 };
 
 const cancelPaymentIntoDB = async (paymentId: string) => {
-  // Validate paymentId format
   if (!mongoose.Types.ObjectId.isValid(paymentId)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid payment ID');
   }
@@ -562,7 +561,7 @@ const getUserDonationStats = async (userId?: string) => {
   }
 };
 
-export const PaymentService = {
+export const PaymentServices = {
   createPayment,
   confirmPaymentIntoDB,
   cancelPaymentIntoDB,

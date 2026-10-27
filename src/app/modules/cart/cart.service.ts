@@ -270,7 +270,7 @@ const deleteCartFromDB = async (userId: string) => {
   return { message: 'Cart cleared successfully' };
 };
 
-export const CartService = {
+export const CartServices = {
   getMyCartFromDB,
   addToCartIntoDB,
   incrementCartItemQuantityIntoDB,

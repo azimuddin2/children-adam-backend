@@ -99,6 +99,6 @@ const createOrderIntoDB = async (
   throw new AppError(httpStatus.BAD_REQUEST, 'Invalid order type');
 };
 
-export const OrderService = {
+export const OrderServices = {
   createOrderIntoDB,
 };

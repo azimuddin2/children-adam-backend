@@ -292,7 +292,7 @@ const deleteDonationsSubcategoryFromDB = async (id: string) => {
   return result;
 };
 
-export const DonationsSubcategoryService = {
+export const DonationsSubcategoryServices = {
   createDonationsSubcategoryIntoDB,
   getAllDonationsSubcategoryFromDB,
   getDonationsSubcategoryByIdFromDB,

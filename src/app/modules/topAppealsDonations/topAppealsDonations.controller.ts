@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { TopAppealsDonationsService } from './topAppealsDonations.service';
+import { TopAppealsDonationsServices } from './topAppealsDonations.service';
 
 const createTopAppealsDonations = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await TopAppealsDonationsService.createTopAppealsDonationsIntoDB(
+      await TopAppealsDonationsServices.createTopAppealsDonationsIntoDB(
         req.body,
         req.file,
       );
@@ -23,7 +23,7 @@ const createTopAppealsDonations = catchAsync(
 const getAllTopAppealsDonations = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await TopAppealsDonationsService.getAllTopAppealsDonationsFromDB(
+      await TopAppealsDonationsServices.getAllTopAppealsDonationsFromDB(
         req.query,
       );
 
@@ -41,7 +41,7 @@ const getTopAppealsDonationsById = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await TopAppealsDonationsService.getTopAppealsDonationsByIdFromDB(id);
+      await TopAppealsDonationsServices.getTopAppealsDonationsByIdFromDB(id);
 
     sendResponse(res, {
       statusCode: 200,
@@ -56,7 +56,7 @@ const updateTopAppealsDonations = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await TopAppealsDonationsService.updateTopAppealsDonationsIntoDB(
+      await TopAppealsDonationsServices.updateTopAppealsDonationsIntoDB(
         id,
         req.body,
         req.file,
@@ -75,7 +75,7 @@ const deleteTopAppealsDonations = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const result =
-      await TopAppealsDonationsService.deleteTopAppealsDonationsFromDB(id);
+      await TopAppealsDonationsServices.deleteTopAppealsDonationsFromDB(id);
 
     sendResponse(res, {
       statusCode: 200,
@@ -86,7 +86,7 @@ const deleteTopAppealsDonations = catchAsync(
   },
 );
 
-export const TopAppealsDonationsController = {
+export const TopAppealsDonationsControllers = {
   createTopAppealsDonations,
   getAllTopAppealsDonations,
   getTopAppealsDonationsById,

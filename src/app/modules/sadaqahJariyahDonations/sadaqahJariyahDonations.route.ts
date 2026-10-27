@@ -3,8 +3,8 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
-import { SadaqahJariyahDonationsValidation } from './sadaqahJariyahDonations.validation';
-import { SadaqahJariyahDonationsController } from './sadaqahJariyahDonations.controller';
+import { SadaqahJariyahDonationsValidations } from './sadaqahJariyahDonations.validation';
+import { SadaqahJariyahDonationsControllers } from './sadaqahJariyahDonations.controller';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -15,21 +15,21 @@ router.post(
   upload.single('image'),
   parseData(),
   validateRequest(
-    SadaqahJariyahDonationsValidation.createSadaqahJariyahDonationsSchema,
+    SadaqahJariyahDonationsValidations.createSadaqahJariyahDonationsSchema,
   ),
-  SadaqahJariyahDonationsController.createSadaqahJariyahDonations,
+  SadaqahJariyahDonationsControllers.createSadaqahJariyahDonations,
 );
 
 router.get(
   '/',
   auth('admin', 'user'),
-  SadaqahJariyahDonationsController.getAllSadaqahJariyahDonations,
+  SadaqahJariyahDonationsControllers.getAllSadaqahJariyahDonations,
 );
 
 router.get(
   '/:id',
   auth('admin', 'user'),
-  SadaqahJariyahDonationsController.getSadaqahJariyahDonationsById,
+  SadaqahJariyahDonationsControllers.getSadaqahJariyahDonationsById,
 );
 
 router.patch(
@@ -38,15 +38,15 @@ router.patch(
   upload.single('image'),
   parseData(),
   validateRequest(
-    SadaqahJariyahDonationsValidation.updateSadaqahJariyahDonationsSchema,
+    SadaqahJariyahDonationsValidations.updateSadaqahJariyahDonationsSchema,
   ),
-  SadaqahJariyahDonationsController.updateSadaqahJariyahDonations,
+  SadaqahJariyahDonationsControllers.updateSadaqahJariyahDonations,
 );
 
 router.delete(
   '/:id',
   auth('admin'),
-  SadaqahJariyahDonationsController.deleteSadaqahJariyahDonations,
+  SadaqahJariyahDonationsControllers.deleteSadaqahJariyahDonations,
 );
 
 export const SadaqahJariyahDonationsRoutes = router;

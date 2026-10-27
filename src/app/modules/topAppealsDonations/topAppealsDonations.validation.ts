@@ -42,7 +42,7 @@ const updateTopAppealsDonationsSchema = z.object({
   }),
 });
 
-export const TopAppealsDonationsValidation = {
+export const TopAppealsDonationsValidations = {
   createTopAppealsDonationsSchema,
   updateTopAppealsDonationsSchema,
 };

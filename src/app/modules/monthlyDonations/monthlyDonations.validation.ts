@@ -42,7 +42,7 @@ const updateMonthlyDonationsSchema = z.object({
   }),
 });
 
-export const MonthlyDonationsValidation = {
+export const MonthlyDonationsValidations = {
   createMonthlyDonationsSchema,
   updateMonthlyDonationsSchema,
 };

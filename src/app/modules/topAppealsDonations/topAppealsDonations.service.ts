@@ -174,7 +174,7 @@ const deleteTopAppealsDonationsFromDB = async (id: string) => {
   return result;
 };
 
-export const TopAppealsDonationsService = {
+export const TopAppealsDonationsServices = {
   createTopAppealsDonationsIntoDB,
   getAllTopAppealsDonationsFromDB,
   getTopAppealsDonationsByIdFromDB,

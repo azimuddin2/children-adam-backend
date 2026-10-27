@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
-import { CartService } from './cart.service';
+import { CartServices } from './cart.service';
 import sendResponse from '../../utils/sendResponse';
 
 const getMyCart = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  const result = await CartService.getMyCartFromDB(userId);
+  const result = await CartServices.getMyCartFromDB(userId);
 
   sendResponse(res, {
     statusCode: 201,
@@ -17,7 +17,7 @@ const getMyCart = catchAsync(async (req: Request, res: Response) => {
 
 const addToCart = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  const result = await CartService.addToCartIntoDB(userId, req.body);
+  const result = await CartServices.addToCartIntoDB(userId, req.body);
 
   sendResponse(res, {
     statusCode: 201,
@@ -31,7 +31,7 @@ const incrementCartItemQuantity = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.userId;
     const itemId = req.params.itemId;
-    const result = await CartService.incrementCartItemQuantityIntoDB(
+    const result = await CartServices.incrementCartItemQuantityIntoDB(
       userId,
       itemId,
     );
@@ -49,7 +49,7 @@ const decrementCartItemQuantity = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.userId;
     const itemId = req.params.itemId;
-    const result = await CartService.decrementCartItemQuantityIntoDB(
+    const result = await CartServices.decrementCartItemQuantityIntoDB(
       userId,
       itemId,
     );
@@ -66,7 +66,7 @@ const decrementCartItemQuantity = catchAsync(
 const removeItemFromCart = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
   const itemId = req.params.itemId;
-  const result = await CartService.removeItemFromCart(userId, itemId);
+  const result = await CartServices.removeItemFromCart(userId, itemId);
 
   sendResponse(res, {
     statusCode: 201,
@@ -78,7 +78,7 @@ const removeItemFromCart = catchAsync(async (req: Request, res: Response) => {
 
 const deleteCart = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  const result = await CartService.deleteCartFromDB(userId);
+  const result = await CartServices.deleteCartFromDB(userId);
 
   sendResponse(res, {
     statusCode: 201,
@@ -88,7 +88,7 @@ const deleteCart = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const CartController = {
+export const CartControllers = {
   getMyCart,
   addToCart,
   incrementCartItemQuantity,

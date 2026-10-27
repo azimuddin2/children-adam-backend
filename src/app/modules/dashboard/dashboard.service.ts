@@ -267,7 +267,7 @@ const getTopDonationsChartFromDB = async () => {
   return result;
 };
 
-export const DashboardService = {
+export const DashboardServices = {
   getDashboardStatsFromDB,
   getEarningsOverviewFromDB,
   getUserOverviewFromDB,

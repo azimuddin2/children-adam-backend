@@ -51,7 +51,7 @@ const updateSubcategoryContentSchema = z.object({
   }),
 });
 
-export const DonationsSubcategoryValidation = {
+export const DonationsSubcategoryValidations = {
   createDonationsSubcategorySchema,
   updateDonationsSubcategorySchema,
   updateSubcategoryContentSchema,

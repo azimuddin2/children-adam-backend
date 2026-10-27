@@ -42,7 +42,7 @@ const updateDailySadaqahDonationsSchema = z.object({
   }),
 });
 
-export const DailySadaqahDonationsValidation = {
+export const DailySadaqahDonationsValidations = {
   createDailySadaqahDonationsSchema,
   updateDailySadaqahDonationsSchema,
 };
