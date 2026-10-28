@@ -22,8 +22,8 @@ import { TopAppealsDonationsRoutes } from '../modules/topAppealsDonations/topApp
 import { CartRoutes } from '../modules/cart/cart.route';
 import { OrderRoutes } from '../modules/order/order.route';
 import { PromotionRoutes } from '../modules/promotion/promotion.route';
-import { DailySadaqahRoutes } from '../modules/dailySadaqah/dailySadaqah.route';
 import { DailySadaqahDonationsRoutes } from '../modules/dailySadaqahDonations/dailySadaqahDonations.route';
+import { DailySadaqahCategoryRoutes } from '../modules/dailySadaqahCategory/dailySadaqahCategory.route';
 
 const router = Router();
 
@@ -65,8 +65,8 @@ const moduleRoutes = [
     route: PollRoutes,
   },
   {
-    path: '/daily-sadaqah',
-    route: DailySadaqahRoutes,
+    path: '/daily-sadaqah-categories',
+    route: DailySadaqahCategoryRoutes,
   },
   {
     path: '/daily-sadaqah-donations',

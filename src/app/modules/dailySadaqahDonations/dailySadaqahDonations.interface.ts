@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { TDailySadaqah } from '../dailySadaqah/dailySadaqah.interface';
+import { TDailySadaqah } from '../dailySadaqahCategory/dailySadaqahCategory.interface';
 
 export type TTDailySadaqahDonations = {
   _id?: string;

@@ -3,7 +3,7 @@ import AppError from '../../errors/AppError';
 import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { TTDailySadaqahDonations } from './dailySadaqahDonations.interface';
-import { DailySadaqah } from '../dailySadaqah/dailySadaqah.model';
+import { DailySadaqah } from '../dailySadaqahCategory/dailySadaqahCategory.model';
 import { DailySadaqahDonations } from './dailySadaqahDonations.model';
 
 const createDailySadaqahDonationsIntoDB = async (
