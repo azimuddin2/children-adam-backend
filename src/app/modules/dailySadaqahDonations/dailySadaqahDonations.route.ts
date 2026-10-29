@@ -1,52 +1,58 @@
 import express from 'express';
 import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
-import multer, { memoryStorage } from 'multer';
-import parseData from '../../middlewares/parseData';
 import { DailySadaqahDonationsControllers } from './dailySadaqahDonations.controller';
 import { DailySadaqahDonationsValidations } from './dailySadaqahDonations.validation';
 
 const router = express.Router();
-const upload = multer({ storage: memoryStorage() });
 
+// দান তৈরি (Give Today's Sadaqah)
 router.post(
   '/',
-  auth('admin'),
-  upload.single('image'),
-  parseData(),
+  auth('user'),
   validateRequest(
     DailySadaqahDonationsValidations.createDailySadaqahDonationsSchema,
   ),
   DailySadaqahDonationsControllers.createDailySadaqahDonations,
 );
 
+// Giving Journey স্ক্রিন (অবশ্যই '/:id'-এর আগে)
 router.get(
-  '/',
-  auth('admin', 'user'),
-  DailySadaqahDonationsControllers.getAllDailySadaqahDonations,
+  '/summary',
+  auth('user'),
+  DailySadaqahDonationsControllers.getGivingSummary,
 );
 
 router.get(
+  '/journey',
+  auth('user'),
+  DailySadaqahDonationsControllers.getGivingJourney,
+);
+
+router.get(
+  '/day/:date',
+  auth('user'),
+  DailySadaqahDonationsControllers.getGivingDayDetail,
+);
+
+router.get(
+  '/recent',
+  auth('user'),
+  DailySadaqahDonationsControllers.getRecentGivingActivity,
+);
+
+// নিজের সব দান
+router.get(
+  '/my',
+  auth('user'),
+  DailySadaqahDonationsControllers.getMyDailySadaqahDonations,
+);
+
+// একটা দান (সবার শেষে)
+router.get(
   '/:id',
-  auth('admin', 'user'),
+  auth('user'),
   DailySadaqahDonationsControllers.getDailySadaqahDonationsById,
-);
-
-router.patch(
-  '/:id',
-  auth('admin'),
-  upload.single('image'),
-  parseData(),
-  validateRequest(
-    DailySadaqahDonationsValidations.updateDailySadaqahDonationsSchema,
-  ),
-  DailySadaqahDonationsControllers.updateDailySadaqahDonations,
-);
-
-router.delete(
-  '/:id',
-  auth('admin'),
-  DailySadaqahDonationsControllers.deleteDailySadaqahDonations,
 );
 
 export const DailySadaqahDonationsRoutes = router;

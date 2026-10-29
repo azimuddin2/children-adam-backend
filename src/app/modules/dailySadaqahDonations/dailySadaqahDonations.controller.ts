@@ -7,23 +7,24 @@ const createDailySadaqahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const result =
       await DailySadaqahDonationsServices.createDailySadaqahDonationsIntoDB(
+        req.user.userId,
         req.body,
-        req.file,
       );
 
     sendResponse(res, {
       statusCode: 201,
       success: true,
-      message: 'Daily sadaqah donations added successfully',
+      message: "Today's sadaqah given successfully",
       data: result,
     });
   },
 );
 
-const getAllDailySadaqahDonations = catchAsync(
+const getMyDailySadaqahDonations = catchAsync(
   async (req: Request, res: Response) => {
     const result =
-      await DailySadaqahDonationsServices.getAllDailySadaqahDonationsFromDB(
+      await DailySadaqahDonationsServices.getMyDailySadaqahDonationsFromDB(
+        req.user.userId,
         req.query,
       );
 
@@ -43,46 +44,74 @@ const getDailySadaqahDonationsById = catchAsync(
     const result =
       await DailySadaqahDonationsServices.getDailySadaqahDonationsByIdFromDB(
         id,
+        req.user.userId,
       );
 
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Daily sadaqah donations retrieved successfully',
+      message: 'Daily sadaqah donation retrieved successfully',
       data: result,
     });
   },
 );
 
-const updateDailySadaqahDonations = catchAsync(
+const getGivingSummary = catchAsync(async (req: Request, res: Response) => {
+  const result = await DailySadaqahDonationsServices.getGivingSummaryFromDB(
+    req.user.userId,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Giving summary retrieved successfully',
+    data: result,
+  });
+});
+
+const getGivingJourney = catchAsync(async (req: Request, res: Response) => {
+  const result = await DailySadaqahDonationsServices.getGivingJourneyFromDB(
+    req.user.userId,
+    req.query,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Giving journey retrieved successfully',
+    data: result,
+  });
+});
+
+const getGivingDayDetail = catchAsync(async (req: Request, res: Response) => {
+  const { date } = req.params;
+  const result = await DailySadaqahDonationsServices.getGivingDayDetailFromDB(
+    req.user.userId,
+    date,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: result
+      ? 'Giving day detail retrieved successfully'
+      : 'No donation found for this day',
+    data: result,
+  });
+});
+
+const getRecentGivingActivity = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params;
     const result =
-      await DailySadaqahDonationsServices.updateDailySadaqahDonationsIntoDB(
-        id,
-        req.body,
-        req.file,
+      await DailySadaqahDonationsServices.getRecentGivingActivityFromDB(
+        req.user.userId,
+        req.query,
       );
 
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Daily sadaqah donations has been updated successfully.',
-      data: result,
-    });
-  },
-);
-
-const deleteDailySadaqahDonations = catchAsync(
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const result =
-      await DailySadaqahDonationsServices.deleteDailySadaqahDonationsFromDB(id);
-
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: 'Daily sadaqah donations deleted successfully',
+      message: 'Recent giving activity retrieved successfully',
       data: result,
     });
   },
@@ -90,8 +119,10 @@ const deleteDailySadaqahDonations = catchAsync(
 
 export const DailySadaqahDonationsControllers = {
   createDailySadaqahDonations,
-  getAllDailySadaqahDonations,
+  getMyDailySadaqahDonations,
   getDailySadaqahDonationsById,
-  updateDailySadaqahDonations,
-  deleteDailySadaqahDonations,
+  getGivingSummary,
+  getGivingJourney,
+  getGivingDayDetail,
+  getRecentGivingActivity,
 };

@@ -1,14 +1,20 @@
 import { Types } from 'mongoose';
-import { TDailySadaqah } from '../dailySadaqahCategory/dailySadaqahCategory.interface';
+import { TDailySadaqahCategory } from '../dailySadaqahCategory/dailySadaqahCategory.interface';
 
-export type TTDailySadaqahDonations = {
+export type TDonationStatus = 'pending' | 'completed' | 'failed';
+
+export type TDailySadaqahDonations = {
   _id?: string;
-  dailySadaqah: TDailySadaqah | Types.ObjectId;
-
-  name: string;
-  amount: number;
-  donationsType: string;
-  image: string | null;
-
+  user: Types.ObjectId;
+  totalAmount: number;
+  isCustomAmount: boolean;
+  distribution: {
+    category: Types.ObjectId | TDailySadaqahCategory;
+    amount: number;
+  }[];
+  date: string;
+  status: TDonationStatus;
   isDeleted: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };

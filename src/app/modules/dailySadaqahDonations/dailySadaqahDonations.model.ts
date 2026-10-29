@@ -1,30 +1,54 @@
 import mongoose, { model, Schema } from 'mongoose';
-import { TTDailySadaqahDonations } from './dailySadaqahDonations.interface';
+import { TDailySadaqahDonations } from './dailySadaqahDonations.interface';
+import { DONATION_STATUS } from './dailySadaqahDonations.constant';
 
-const DailySadaqahDonationsSchema = new Schema<TTDailySadaqahDonations>(
+const distributionSchema = new Schema(
   {
-    dailySadaqah: {
+    category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'DailySadaqah',
+      ref: 'DailySadaqahCategory',
       required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-      trim: true,
     },
     amount: {
       type: Number,
       required: true,
+      min: 0,
     },
-    donationsType: {
+  },
+  { _id: false },
+);
+
+const DailySadaqahDonationsSchema = new Schema<TDailySadaqahDonations>(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    isCustomAmount: {
+      type: Boolean,
+      default: false,
+    },
+    distribution: {
+      type: [distributionSchema],
+      required: true,
+    },
+    date: {
       type: String,
       required: true,
-      trim: true,
     },
-    image: {
+    status: {
       type: String,
-      default: null,
+      enum: {
+        values: DONATION_STATUS,
+        message: '{VALUE} is not valid',
+      },
+      default: 'pending',
     },
     isDeleted: {
       type: Boolean,
@@ -34,7 +58,15 @@ const DailySadaqahDonationsSchema = new Schema<TTDailySadaqahDonations>(
   { timestamps: true },
 );
 
-export const DailySadaqahDonations = model<TTDailySadaqahDonations>(
+DailySadaqahDonationsSchema.index(
+  { user: 1, date: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: 'completed', isDeleted: false },
+  },
+);
+
+export const DailySadaqahDonations = model<TDailySadaqahDonations>(
   'DailySadaqahDonations',
   DailySadaqahDonationsSchema,
 );
