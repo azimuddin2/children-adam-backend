@@ -25,6 +25,7 @@ import { PromotionRoutes } from '../modules/promotion/promotion.route';
 import { DailySadaqahDonationsRoutes } from '../modules/dailySadaqahDonations/dailySadaqahDonations.route';
 import { DailySadaqahCategoryRoutes } from '../modules/dailySadaqahCategory/dailySadaqahCategory.route';
 import { IslamicReminderRoutes } from '../modules/islamicReminder/islamicReminder.route';
+import { ProjectRoutes } from '../modules/project/project.routes';
 
 const router = Router();
 
@@ -132,6 +133,10 @@ const moduleRoutes = [
   {
     path: '/islamic-reminders',
     route: IslamicReminderRoutes,
+  },
+  {
+    path: '/projects',
+    route: ProjectRoutes,
   },
 ];
 
