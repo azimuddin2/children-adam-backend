@@ -7,7 +7,6 @@ export type TDailySadaqahDonations = {
   _id?: string;
   user: Types.ObjectId;
   totalAmount: number;
-  isCustomAmount: boolean;
   distribution: {
     category: Types.ObjectId | TDailySadaqahCategory;
     amount: number;

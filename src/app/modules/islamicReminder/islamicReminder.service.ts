@@ -6,7 +6,6 @@ import { IslamicReminder } from './islamicReminder.model';
 import {
   CACHE_TTL,
   clearReminderCache,
-  reminderCache,
   resolveTargetDate,
 } from './islamicReminder.utils';
 
@@ -46,6 +45,9 @@ const getAllIslamicRemindersFromDB = async (query: Record<string, unknown>) => {
   return { meta, result };
 };
 
+type TCacheItem = { data: TIslamicReminder[]; expiresAt: number };
+const reminderCache = new Map<string, TCacheItem>();
+
 const getTodayIslamicReminderFromDB = async (dateQuery?: string) => {
   const targetDate = resolveTargetDate(dateQuery);
 
@@ -54,22 +56,33 @@ const getTodayIslamicReminderFromDB = async (dateQuery?: string) => {
     return cached.data;
   }
 
-  let result = await IslamicReminder.findOne({
+  let result = await IslamicReminder.find({
     date: targetDate,
     isDeleted: false,
-  }).lean<TIslamicReminder>();
+  })
+    .sort({ createdAt: 1 }) // যেটা আগে add করেছ সেটা আগে
+    .lean<TIslamicReminder[]>();
 
-  // Fallback: oi date-e na thakle sabcheye kachher ager reminder
-  if (!result) {
-    result = await IslamicReminder.findOne({
+  // ওই তারিখে না থাকলে, কাছের আগের তারিখের সবগুলো
+  if (result.length === 0) {
+    const latest = await IslamicReminder.findOne({
       date: { $lte: targetDate },
       isDeleted: false,
     })
       .sort({ date: -1 })
       .lean<TIslamicReminder>();
+
+    if (latest) {
+      result = await IslamicReminder.find({
+        date: latest.date,
+        isDeleted: false,
+      })
+        .sort({ createdAt: 1 })
+        .lean<TIslamicReminder[]>();
+    }
   }
 
-  if (!result) {
+  if (result.length === 0) {
     throw new AppError(404, 'No Islamic reminder found');
   }
 

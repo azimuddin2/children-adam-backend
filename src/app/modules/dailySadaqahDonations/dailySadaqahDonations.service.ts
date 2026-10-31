@@ -1,39 +1,25 @@
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { TDailySadaqahDonations } from './dailySadaqahDonations.interface';
 import { DailySadaqahCategory } from '../dailySadaqahCategory/dailySadaqahCategory.model';
 import { DailySadaqahDonations } from './dailySadaqahDonations.model';
-import { DEFAULT_TIMEZONE } from './dailySadaqahDonations.constant';
 import { PaymentServices } from '../payment/payment.service';
-
-// ---------- Helpers ----------
-
-const getToday = () =>
-  new Date().toLocaleDateString('en-CA', { timeZone: DEFAULT_TIMEZONE }); // "2026-10-28"
-
-const getCurrentMonth = () => getToday().slice(0, 7); // "2026-10"
-
-// ---------- Create ----------
+import {
+  formatDonation,
+  getCurrentMonth,
+  getToday,
+  toPounds,
+} from './dailySadaqahDonations.utils';
 
 const createDailySadaqahDonationsIntoDB = async (
   userId: string,
-  payload: Pick<TDailySadaqahDonations, 'totalAmount' | 'isCustomAmount'>,
+  payload: Pick<TDailySadaqahDonations, 'totalAmount'>,
 ) => {
   const date = getToday();
 
-  // আজ আগেই দান হয়ে থাকলে আটকাও
-  const isExists = await DailySadaqahDonations.findOne({
-    user: userId,
-    date,
-    status: 'completed',
-    isDeleted: false,
-  });
-  if (isExists) {
-    throw new AppError(409, "You have already given today's sadaqah");
-  }
+  const totalPence = Math.round(payload.totalAmount * 100);
 
-  // ক্যাটাগরিতে সমান ভাগ
   const categories = await DailySadaqahCategory.find({
     isDeleted: false,
   }).sort({ createdAt: 1 });
@@ -41,36 +27,32 @@ const createDailySadaqahDonationsIntoDB = async (
     throw new AppError(400, 'No daily sadaqah category found');
   }
 
-  const base = Math.floor(payload.totalAmount / categories.length);
-  const remainder = payload.totalAmount % categories.length;
+  const base = Math.floor(totalPence / categories.length);
+  const remainder = totalPence % categories.length;
   const distribution = categories.map((category, index) => ({
     category: category._id,
     amount: base + (index < remainder ? 1 : 0),
   }));
 
-  // আজকের পুরনো অসম্পূর্ণ দান বাতিল
   await DailySadaqahDonations.updateMany(
     { user: userId, date, status: 'pending' },
     { status: 'failed' },
   );
 
-  // নতুন দান তৈরি (এখনো টাকা আসেনি, তাই pending)
   const donation = await DailySadaqahDonations.create({
     user: userId,
-    totalAmount: payload.totalAmount,
-    isCustomAmount: payload.isCustomAmount ?? false,
+    totalAmount: totalPence,
     distribution,
     date,
     status: 'pending',
   });
 
-  // তোমার আগের পেমেন্ট ফাংশন কল
   try {
     return await PaymentServices.createPayment(userId, {
       donationId: donation._id.toString(),
-      donationModel: 'DailySadaqahDonations',
+      donationModel: 'DailySadaqahDonation',
       name: 'Daily Sadaqah',
-      price: payload.totalAmount / 100, // পাউন্ডে
+      price: totalPence / 100,
       donationsType: 'Daily Sadaqah',
     });
   } catch (error) {
@@ -80,8 +62,6 @@ const createDailySadaqahDonationsIntoDB = async (
     throw error;
   }
 };
-
-// ---------- Read (my donations) ----------
 
 const getMyDailySadaqahDonationsFromDB = async (
   userId: string,
@@ -95,7 +75,7 @@ const getMyDailySadaqahDonationsFromDB = async (
     }).populate('distribution.category', 'name icon'),
     query,
   )
-    .filter() // ?date=2026-10-20
+    .filter()
     .sort()
     .paginate()
     .fields();
@@ -103,7 +83,7 @@ const getMyDailySadaqahDonationsFromDB = async (
   const meta = await donationsQuery.countTotal();
   const result = await donationsQuery.modelQuery;
 
-  return { meta, result };
+  return { meta, result: result.map(formatDonation) };
 };
 
 const getDailySadaqahDonationsByIdFromDB = async (
@@ -123,10 +103,8 @@ const getDailySadaqahDonationsByIdFromDB = async (
     throw new AppError(400, 'This daily sadaqah donation has been deleted');
   }
 
-  return result;
+  return formatDonation(result);
 };
-
-// ---------- Giving Journey ----------
 
 const getGivingSummaryFromDB = async (userId: string) => {
   const currentMonth = getCurrentMonth();
@@ -160,7 +138,7 @@ const getGivingSummaryFromDB = async (userId: string) => {
   return {
     daysGivenThisMonth: totals?.daysGivenThisMonth ?? 0,
     totalGivingDays: totals?.totalGivingDays ?? 0,
-    totalDonated: totals?.totalDonated ?? 0, // সেন্টে
+    totalDonated: toPounds(totals?.totalDonated ?? 0),
   };
 };
 
@@ -168,16 +146,13 @@ const getGivingJourneyFromDB = async (
   userId: string,
   query: Record<string, unknown>,
 ) => {
-  // 1️⃣ Get month (default: current month)
   const month = (query.month as string) || getCurrentMonth();
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
     throw new AppError(400, 'Month must be in YYYY-MM format');
   }
 
-  // 2️⃣ Summary (3 cards)
   const summary = await getGivingSummaryFromDB(userId);
 
-  // 3️⃣ This month's given dates (calendar)
   const monthDonations = await DailySadaqahDonations.find({
     user: userId,
     status: 'completed',
@@ -190,30 +165,53 @@ const getGivingJourneyFromDB = async (
 
   const givenDates = monthDonations.map((item) => item.date);
 
-  // ✅ 4️⃣ Return
   return {
     month,
     summary,
-    givenDates, // ["2026-10-02", "2026-10-04", ...]
+    givenDates,
   };
 };
 
 const getGivingDayDetailFromDB = async (userId: string, date: string) => {
-  // 1️⃣ Validate date
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new AppError(400, 'Date must be in YYYY-MM-DD format');
   }
 
-  // 2️⃣ Find that day's donation
-  const result = await DailySadaqahDonations.findOne({
+  const donations = await DailySadaqahDonations.find({
     user: userId,
     date,
     status: 'completed',
     isDeleted: false,
-  }).populate('distribution.category', 'name icon');
+  })
+    .populate('distribution.category', 'name icon')
+    .sort({ createdAt: 1 })
+    .lean();
 
-  // দান না থাকলে এরর না, null ফেরত (ফ্রন্টএন্ড "No donation" দেখাবে)
-  return result;
+  if (!donations.length) return null;
+
+  const merged = new Map<string, { category: any; amount: number }>();
+  let total = 0;
+
+  for (const donation of donations) {
+    total += donation.totalAmount;
+
+    for (const item of donation.distribution as any[]) {
+      const key = String(item.category?._id ?? item.category);
+      const existing = merged.get(key);
+      if (existing) existing.amount += item.amount;
+      else merged.set(key, { category: item.category, amount: item.amount });
+    }
+  }
+
+  return {
+    date,
+    status: 'completed',
+    totalAmount: toPounds(total),
+    distribution: [...merged.values()].map((d) => ({
+      category: d.category,
+      amount: toPounds(d.amount),
+    })),
+  };
 };
 
 const getRecentGivingActivityFromDB = async (
@@ -232,11 +230,10 @@ const getRecentGivingActivityFromDB = async (
     .limit(limit)
     .lean();
 
-  // "Food · Water · Orphans · Emergency" দেখানোর জন্য
   return donations.map((item) => ({
     _id: item._id,
     date: item.date,
-    totalAmount: item.totalAmount,
+    totalAmount: toPounds(item.totalAmount),
     status: item.status,
     categories: (item.distribution as any[]).map((d) => d.category?.name),
   }));

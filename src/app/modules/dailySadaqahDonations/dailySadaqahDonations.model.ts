@@ -30,10 +30,6 @@ const DailySadaqahDonationsSchema = new Schema<TDailySadaqahDonations>(
       required: true,
       min: 1,
     },
-    isCustomAmount: {
-      type: Boolean,
-      default: false,
-    },
     distribution: {
       type: [distributionSchema],
       required: true,

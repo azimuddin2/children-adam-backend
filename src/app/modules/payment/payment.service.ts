@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 import config from '../../config';
 import StripeService from '../../class/stripe';
 import { sendNotification } from '../notification/notification.utils';
-import { generateTrxId } from './payment.utils';
+import { generateTrxId, syncDonationStatus } from './payment.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { paymentSearchableFields } from './payment.constant';
 import { OrderServices } from '../order/order.service';
@@ -212,6 +212,8 @@ const confirmPaymentIntoDB = async (query: {
       throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
     }
 
+    await syncDonationStatus(order, 'completed', session);
+
     // ✅ Notification
     const user = await User.findById(payment.user);
     if (user?.fcmToken) {
@@ -278,6 +280,9 @@ const cancelPaymentIntoDB = async (paymentId: string) => {
 
     payment.status = 'cancelled';
     await payment.save({ session });
+
+    const order = await Order.findById(payment.order).session(session);
+    await syncDonationStatus(order, 'failed', session);
 
     await session.commitTransaction();
     return { message: 'Payment cancelled successfully', payment };

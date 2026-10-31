@@ -35,26 +35,15 @@ const ProjectSchema = new Schema<TProject>(
         'At least one image is required',
       ],
     },
-    summary: {
+    description: {
       type: String,
       required: true,
       trim: true,
     },
-    description: {
-      lead: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-      body: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-      quote: {
-        type: String,
-        trim: true,
-      },
+    content: {
+      type: String,
+      required: true,
+      trim: true,
     },
   },
   { timestamps: true },

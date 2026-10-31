@@ -8,17 +8,11 @@ const createProjectSchema = z.object({
     category: z.string({
       required_error: 'Project Category ID is required',
     }),
-    summary: z.string({
+    description: z.string({
       required_error: 'Project Summary is required',
     }),
-    description: z.object({
-      lead: z.string({
-        required_error: 'Project Lead is required',
-      }),
-      body: z.string({
-        required_error: 'Project Description is required',
-      }),
-      quote: z.string().optional(),
+    content: z.string({
+      required_error: 'Content is required',
     }),
   }),
 });
@@ -28,11 +22,9 @@ const updateProjectSchema = z.object({
     title: z.string().optional(),
     category: z.string().optional(),
     summary: z.string().optional(),
-    description: z
-      .object({
-        lead: z.string().optional(),
-        body: z.string().optional(),
-        quote: z.string().optional(),
+    content: z
+      .string({
+        required_error: 'Content is required',
       })
       .optional(),
   }),

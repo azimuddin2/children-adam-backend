@@ -10,12 +10,8 @@ export type TProject = {
   title: string;
   category: string | TDailySadaqahCategory;
   images: TImage[];
-  summary: string;
-  description: {
-    lead: string;
-    body: string;
-    quote?: string;
-  };
+  description: string;
+  content: string;
   createdAt?: string;
   updatedAt?: string;
 };

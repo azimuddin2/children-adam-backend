@@ -7,7 +7,6 @@ export type TDonationModelType =
   | 'DonationsSubcategory'
   | 'TopAppeals'
   | 'SadaqahJariyah'
-  | 'DailySadaqah'
   | 'DailySadaqahDonations';
 
 export type TCartItem = {

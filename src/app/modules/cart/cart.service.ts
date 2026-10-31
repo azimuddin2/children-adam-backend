@@ -6,7 +6,6 @@ import { TopAppealsDonations } from '../topAppealsDonations/topAppealsDonations.
 import { TopAppeals } from '../topAppeals/topAppeals.model';
 import { DonationsSubcategory } from '../monthlyDonationSubcategory/monthlyDonationSubcategory.model';
 import { SadaqahJariyah } from '../sadaqahJariyah/sadaqahJariyah.model';
-import { DailySadaqah } from '../dailySadaqahCategory/dailySadaqahCategory.model';
 import { DailySadaqahDonations } from '../dailySadaqahDonations/dailySadaqahDonations.model';
 import { TCartItem, TDonationModelType } from './cart.interface';
 import AppError from '../../errors/AppError';
@@ -20,7 +19,6 @@ const DonationModelMap: Record<TDonationModelType, mongoose.Model<any>> = {
   DonationsSubcategory,
   TopAppeals,
   SadaqahJariyah,
-  DailySadaqah,
   DailySadaqahDonations,
 };
 

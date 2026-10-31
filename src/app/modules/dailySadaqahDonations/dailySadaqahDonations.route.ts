@@ -16,7 +16,6 @@ router.post(
   DailySadaqahDonationsControllers.createDailySadaqahDonations,
 );
 
-// Giving Journey স্ক্রিন (অবশ্যই '/:id'-এর আগে)
 router.get(
   '/summary',
   auth('user'),

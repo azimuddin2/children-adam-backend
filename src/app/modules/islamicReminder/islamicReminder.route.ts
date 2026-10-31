@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get(
   '/today',
-  auth('user', 'admin'),
+  // auth('user', 'admin'),
   IslamicReminderControllers.getTodayIslamicReminder,
 );
 
