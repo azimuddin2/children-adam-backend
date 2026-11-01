@@ -6,7 +6,6 @@ import { DailySadaqahDonationsValidations } from './dailySadaqahDonations.valida
 
 const router = express.Router();
 
-// দান তৈরি (Give Today's Sadaqah)
 router.post(
   '/',
   auth('user'),
@@ -40,14 +39,12 @@ router.get(
   DailySadaqahDonationsControllers.getRecentGivingActivity,
 );
 
-// নিজের সব দান
 router.get(
   '/my',
   auth('user'),
   DailySadaqahDonationsControllers.getMyDailySadaqahDonations,
 );
 
-// একটা দান (সবার শেষে)
 router.get(
   '/:id',
   auth('user'),
