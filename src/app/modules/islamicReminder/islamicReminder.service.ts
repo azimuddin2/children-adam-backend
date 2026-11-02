@@ -9,6 +9,9 @@ import {
   resolveTargetDate,
 } from './islamicReminder.utils';
 
+type TCacheItem = { data: TIslamicReminder[]; expiresAt: number };
+const reminderCache = new Map<string, TCacheItem>();
+
 const createIslamicReminderIntoDB = async (payload: TIslamicReminder) => {
   const isExists = await IslamicReminder.findOne({
     date: payload.date,
@@ -45,9 +48,6 @@ const getAllIslamicRemindersFromDB = async (query: Record<string, unknown>) => {
   return { meta, result };
 };
 
-type TCacheItem = { data: TIslamicReminder[]; expiresAt: number };
-const reminderCache = new Map<string, TCacheItem>();
-
 const getTodayIslamicReminderFromDB = async (dateQuery?: string) => {
   const targetDate = resolveTargetDate(dateQuery);
 
@@ -60,10 +60,9 @@ const getTodayIslamicReminderFromDB = async (dateQuery?: string) => {
     date: targetDate,
     isDeleted: false,
   })
-    .sort({ createdAt: 1 }) // যেটা আগে add করেছ সেটা আগে
+    .sort({ createdAt: 1 })
     .lean<TIslamicReminder[]>();
 
-  // ওই তারিখে না থাকলে, কাছের আগের তারিখের সবগুলো
   if (result.length === 0) {
     const latest = await IslamicReminder.findOne({
       date: { $lte: targetDate },
@@ -122,7 +121,6 @@ const updateIslamicReminderIntoDB = async (
     throw new AppError(400, 'This Islamic reminder has been deleted');
   }
 
-  // Date change hole duplicate check
   if (payload.date && payload.date !== reminder.date) {
     const duplicate = await IslamicReminder.findOne({
       date: payload.date,

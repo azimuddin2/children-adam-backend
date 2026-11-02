@@ -119,13 +119,19 @@ const getGivingSummaryFromDB = async (userId: string) => {
     },
     {
       $group: {
+        _id: '$date',
+        dayTotal: { $sum: '$totalAmount' },
+      },
+    },
+    {
+      $group: {
         _id: null,
         totalGivingDays: { $sum: 1 },
-        totalDonated: { $sum: '$totalAmount' },
+        totalDonated: { $sum: '$dayTotal' },
         daysGivenThisMonth: {
           $sum: {
             $cond: [
-              { $eq: [{ $substrBytes: ['$date', 0, 7] }, currentMonth] },
+              { $eq: [{ $substrBytes: ['$_id', 0, 7] }, currentMonth] },
               1,
               0,
             ],
@@ -153,17 +159,14 @@ const getGivingJourneyFromDB = async (
 
   const summary = await getGivingSummaryFromDB(userId);
 
-  const monthDonations = await DailySadaqahDonations.find({
-    user: userId,
-    status: 'completed',
-    isDeleted: false,
-    date: { $gte: `${month}-01`, $lte: `${month}-31` },
-  })
-    .select('date -_id')
-    .sort({ date: 1 })
-    .lean();
-
-  const givenDates = monthDonations.map((item) => item.date);
+  const givenDates = (
+    await DailySadaqahDonations.distinct('date', {
+      user: userId,
+      status: 'completed',
+      isDeleted: false,
+      date: { $gte: `${month}-01`, $lte: `${month}-31` },
+    })
+  ).sort();
 
   return {
     month,
