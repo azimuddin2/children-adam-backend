@@ -214,12 +214,16 @@ const confirmPaymentIntoDB = async (query: {
 
     await syncDonationStatus(order, 'completed', session);
 
+    const formattedAmount = Number.isInteger(payment.price)
+      ? `${payment.price}`
+      : payment.price.toFixed(2);
+
     // ✅ Notification
     const user = await User.findById(payment.user);
     if (user?.fcmToken) {
       sendNotification([user.fcmToken], {
-        title: 'Donation Payment Successfully 🎉',
-        message: `Thank you for your generous donation of £${payment.price.toFixed(2)}! Your support helps make a positive impact. ❤️`,
+        title: 'Alhamdulillah! Your donation was successful.',
+        message: `JazakAllah Khair for your £${formattedAmount} Sadaqah. May Allah accept it and reward you abundantly. Ameen.`,
         receiver: user._id as any,
         receiverEmail: user.email,
         receiverRole: user.role as string,
